@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:kz="using:Kztek.Cameras"
+             x:Class="CMS.App.Controls.VideoCellView">
+
+    <Border Background="#121214" BorderBrush="#27272A" BorderThickness="1" CornerRadius="4" ClipToBounds="True">
+        <Grid>
+            <!-- 1. Video Player Surface -->
+            <kz:AnvPlayer x:Name="Player" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+            <!-- 2. Placeholder when No Video is Playing -->
+            <Grid x:Name="PlaceholderGrid" Background="#18181B" IsVisible="True">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                    <TextBlock Text="📹" FontSize="32" HorizontalAlignment="Center" Opacity="0.5"/>
+                    <TextBlock x:Name="TxtPlaceholder" Text="No Video Stream" Foreground="#71717A" FontSize="13" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Click or drag camera to play" Foreground="#52525B" FontSize="11" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- 3. Top OSD Overlay -->
+            <Border VerticalAlignment="Top" Background="#90000000" Padding="8,4" Margin="4" CornerRadius="4">
+                <Grid ColumnDefinitions="Auto, *, Auto">
+                    <!-- Status & Camera Name -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <Border x:Name="StatusDot" Background="#EF4444" CornerRadius="4" Width="8" Height="8" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TxtCameraName" Text="Camera Slot" FontWeight="Bold" FontSize="12" Foreground="White"/>
+                        <Border x:Name="StreamBadge" Background="#2563EB" CornerRadius="3" Padding="4,1" VerticalAlignment="Center">
+                            <TextBlock x:Name="TxtStreamType" Text="SUB" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Top Action Buttons -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+                        <Button x:Name="BtnToggleStream" Content="HD" ToolTip.Tip="Toggle Main / Sub Stream"
+                                Background="#3F3F46" Foreground="White" Padding="6,2" FontSize="10" Height="22"/>
+                        <Button x:Name="BtnSnapshot" Content="📸" ToolTip.Tip="Take Snapshot"
+                                Background="#3F3F46" Foreground="White" Padding="6,2" FontSize="10" Height="22"/>
+                        <Button x:Name="BtnClose" Content="✕" ToolTip.Tip="Close Stream"
+                                Background="#7F1D1D" Foreground="White" Padding="6,2" FontSize="10" Height="22"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>
