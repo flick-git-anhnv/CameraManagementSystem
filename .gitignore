@@ -1,0 +1,39 @@
+## Visual Studio / .NET / Rider
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.idea/
+.vscode/
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild/
+[Bb]in/
+[Oo]bj/
+publish/
+
+## Avalonia
+.avalonia/
+
+## Temporary data & Recordings
+recordings/
+temp/
+logs/
+*.log
+*.mp4
+*.ts
+*.mkv
+*.h264
+*.h265
+
+## OS generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
