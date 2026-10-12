@@ -102,10 +102,10 @@
                 <views:DeviceManagementView DataContext="{Binding DeviceManagementVM}"/>
             </Border>
 
-            <!-- 3. Other Pages Placeholder -->
-            <Grid IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.Playback}}">
-                <TextBlock Text="⏪ Playback Engine Timeline will be loaded here (Milestone 4)" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#71717A" FontSize="16"/>
-            </Grid>
+            <!-- 3. Playback Page -->
+            <Border IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.Playback}}">
+                <views:PlaybackView DataContext="{Binding PlaybackVM}"/>
+            </Border>
 
             <Grid IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.AiAnalytics}}">
                 <TextBlock Text="🤖 Edge AI Analytics (Vehicles &amp; Persons) will be loaded here (Milestone 7 &amp; 8)" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#71717A" FontSize="16"/>

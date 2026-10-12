@@ -21,6 +21,7 @@ public partial class LiveViewGrid : UserControl
         BtnGrid3x3.Click += (_, _) => SetGridLayout(3);
         BtnGrid4x4.Click += (_, _) => SetGridLayout(4);
         BtnStopAll.Click += (_, _) => StopAll();
+        BtnRecordAll.Click += (_, _) => ToggleRecordAll();
 
         SetGridLayout(2);
     }
@@ -129,6 +130,29 @@ public partial class LiveViewGrid : UserControl
             _cells[idx].PlayCamera(cam, useMainStream: false);
             idx++;
         }
+    }
+
+    public void ToggleRecordAll()
+    {
+        bool anyRecording = _cells.Any(c => c.IsRecording);
+
+        foreach (var cell in _cells)
+        {
+            if (cell.CurrentCamera != null)
+            {
+                if (anyRecording && cell.IsRecording)
+                {
+                    cell.ToggleRecording();
+                }
+                else if (!anyRecording && !cell.IsRecording)
+                {
+                    cell.ToggleRecording();
+                }
+            }
+        }
+
+        BtnRecordAll.Content = anyRecording ? "⏺️ Record All" : "⏹️ Stop Record";
+        BtnRecordAll.Background = anyRecording ? Avalonia.Media.Brush.Parse("#7F1D1D") : Avalonia.Media.Brushes.ForestGreen;
     }
 
     public void StopAll()

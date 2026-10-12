@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="CMS.App.Controls.TimelineControl"
+             Height="70">
+
+    <Border Background="#121214" BorderBrush="#27272A" BorderThickness="0,1,0,0">
+        <Grid>
+            <!-- Canvas vẽ các dải màu video đã ghi và vạch giờ -->
+            <Canvas x:Name="TimelineCanvas" Background="#18181B" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+            <!-- Con trỏ thời gian (Playhead Cursor) -->
+            <Canvas x:Name="PlayheadCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsHitTestVisible="False">
+                <Line x:Name="PlayheadLine" StartPoint="0,0" EndPoint="0,70" Stroke="#EF4444" StrokeThickness="2"/>
+                <Polygon x:Name="PlayheadHead" Points="0,0 6,10 -6,10" Fill="#EF4444"/>
+            </Canvas>
+
+            <!-- Nhãn thời gian hiện tại góc trên -->
+            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#80000000" Padding="8,2" Margin="6" CornerRadius="3">
+                <TextBlock x:Name="TxtCurrentTime" Text="00:00:00" Foreground="#F4F4F5" FontSize="11" FontWeight="Bold"/>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

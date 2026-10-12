@@ -3,8 +3,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using CMS.Core.Entities;
-using CMS.Core.Enums;
 using CMS.Drivers;
+using CMS.MediaServer.Storage;
 using Kztek.Cameras;
 
 namespace CMS.App.Controls;
@@ -14,12 +14,17 @@ public partial class VideoCellView : UserControl
     private CameraDevice? _camera;
     private bool _isUsingMainStream = false;
     private bool _isPlaying = false;
+    private bool _isRecording = false;
+    private static StorageManager? _storageManager;
+
+    public static StorageManager GlobalStorageManager => _storageManager ??= new StorageManager();
 
     public event EventHandler? DoubleClicked;
     public event EventHandler? Closed;
 
     public CameraDevice? CurrentCamera => _camera;
     public bool IsPlaying => _isPlaying;
+    public bool IsRecording => _isRecording;
 
     public VideoCellView()
     {
@@ -28,6 +33,7 @@ public partial class VideoCellView : UserControl
         BtnClose.Click += OnBtnCloseClick;
         BtnToggleStream.Click += OnBtnToggleStreamClick;
         BtnSnapshot.Click += OnBtnSnapshotClick;
+        BtnRecord.Click += OnBtnRecordClick;
         this.DoubleTapped += OnCellDoubleTapped;
         this.Unloaded += OnCellUnloaded;
     }
@@ -61,6 +67,9 @@ public partial class VideoCellView : UserControl
 
             PlaceholderGrid.IsVisible = false;
             StatusDot.Background = Brushes.LimeGreen;
+
+            // Kiểm tra trạng thái ghi hình
+            UpdateRecordingState(GlobalStorageManager.IsRecording(camera.Id));
         }
         catch (Exception ex)
         {
@@ -68,6 +77,29 @@ public partial class VideoCellView : UserControl
             PlaceholderGrid.IsVisible = true;
             StatusDot.Background = Brushes.Crimson;
         }
+    }
+
+    public async void ToggleRecording()
+    {
+        if (_camera == null) return;
+
+        if (_isRecording)
+        {
+            await GlobalStorageManager.StopRecordingAsync(_camera.Id);
+            UpdateRecordingState(false);
+        }
+        else
+        {
+            bool ok = await GlobalStorageManager.StartRecordingAsync(_camera);
+            UpdateRecordingState(ok);
+        }
+    }
+
+    private void UpdateRecordingState(bool recording)
+    {
+        _isRecording = recording;
+        RecBadge.IsVisible = recording;
+        BtnRecord.Background = recording ? Brushes.Crimson : Brush.Parse("#3F3F46");
     }
 
     public void ToggleStreamResolution()
@@ -91,6 +123,7 @@ public partial class VideoCellView : UserControl
         }
 
         _camera = null;
+        UpdateRecordingState(false);
         PlaceholderGrid.IsVisible = true;
         StatusDot.Background = Brushes.Crimson;
         TxtCameraName.Text = "Empty Slot";
@@ -107,10 +140,14 @@ public partial class VideoCellView : UserControl
         ToggleStreamResolution();
     }
 
+    private void OnBtnRecordClick(object? sender, RoutedEventArgs e)
+    {
+        ToggleRecording();
+    }
+
     private void OnBtnSnapshotClick(object? sender, RoutedEventArgs e)
     {
         if (!_isPlaying) return;
-        // Chụp nhanh từ frame hiện tại của player
         try
         {
             var frame = Player.GetCurrentVideoFrame();

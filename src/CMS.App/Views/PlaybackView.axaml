@@ -1,0 +1,144 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CMS.App.ViewModels"
+             xmlns:controls="using:CMS.App.Controls"
+             xmlns:entities="using:CMS.Core.Entities"
+             x:Class="CMS.App.Views.PlaybackView"
+             x:DataType="vm:PlaybackViewModel">
+
+    <Grid ColumnDefinitions="300, *" Margin="8">
+        <!-- 1. Left Sidebar: Camera List & Date Selector -->
+        <Border Grid.Column="0" Background="#18181B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,8,0">
+            <Grid RowDefinitions="Auto, Auto, Auto, Auto, *">
+                <TextBlock Grid.Row="0" Text="PLAYBACK SEARCH" FontWeight="Bold" FontSize="13" Foreground="#3B82F6" Margin="0,0,0,10"/>
+
+                <!-- Camera Selector -->
+                <TextBlock Grid.Row="1" Text="Select Camera" FontSize="11" Foreground="#A1A1AA" Margin="0,0,0,4"/>
+                <ComboBox Grid.Row="2" ItemsSource="{Binding Cameras}" SelectedItem="{Binding SelectedCamera}" HorizontalAlignment="Stretch" Margin="0,0,0,10">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="entities:CameraDevice">
+                            <TextBlock Text="{Binding Name}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <!-- Date Picker & Search Button -->
+                <StackPanel Grid.Row="3" Spacing="8" Margin="0,0,0,12">
+                    <TextBlock Text="Select Date" FontSize="11" Foreground="#A1A1AA"/>
+                    <DatePicker SelectedDate="{Binding SelectedDate}" HorizontalAlignment="Stretch"/>
+                    <Button Content="🔍 Search Recordings" 
+                            Command="{Binding SearchRecordingsCommand}"
+                            Background="#2563EB" Foreground="White" FontWeight="SemiBold" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="10,6"/>
+                </StackPanel>
+
+                <!-- Record Segments List -->
+                <Border Grid.Row="4" Background="#121214" CornerRadius="4" BorderBrush="#27272A" BorderThickness="1" Padding="8">
+                    <Grid RowDefinitions="Auto, *">
+                        <TextBlock Grid.Row="0" Text="RECORDED SEGMENTS" FontWeight="SemiBold" FontSize="11" Foreground="#71717A" Margin="0,0,0,6"/>
+                        <ListBox Grid.Row="1" ItemsSource="{Binding AvailableSegments}" SelectedItem="{Binding CurrentPlayingSegment}" Background="Transparent">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="entities:VideoSegment">
+                                    <Border Background="#1E1E22" CornerRadius="4" Padding="8,6" Margin="0,2">
+                                        <Grid ColumnDefinitions="Auto, *">
+                                            <Border Grid.Column="0" Background="#10B981" CornerRadius="3" Width="4" Margin="0,0,8,0"/>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding StartTime, StringFormat='{}{0:HH:mm:ss} - '}" FontWeight="Bold" FontSize="11" Foreground="#F4F4F5"/>
+                                                <TextBlock Text="{Binding EndTime, StringFormat='{}{0:HH:mm:ss}'}" FontSize="10" Foreground="#A1A1AA"/>
+                                                <TextBlock Text="{Binding DurationSeconds, StringFormat='Duration: {0:F0}s'}" FontSize="10" Foreground="#71717A"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- 2. Right: Video Surface & Timeline -->
+        <Grid Grid.Column="1" RowDefinitions="*, Auto, Auto">
+            <!-- Video Display Area -->
+            <Border Grid.Row="0" Background="#09090B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="6" Margin="0,0,0,8">
+                <Grid>
+                    <!-- Screen Surface Placeholder / Player -->
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                        <TextBlock Text="🎬" FontSize="56" HorizontalAlignment="Center" Opacity="0.6"/>
+                        <TextBlock Text="Synchronous Playback Engine Ready" FontSize="18" FontWeight="SemiBold" Foreground="#FFFFFF" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding PlaybackStatus}" Foreground="#A1A1AA" HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Top OSD Information -->
+                    <Border VerticalAlignment="Top" HorizontalAlignment="Left" Background="#A0000000" Padding="10,6" Margin="10" CornerRadius="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{Binding SelectedCamera.Name, FallbackValue='No Camera'}" FontWeight="Bold" Foreground="White" FontSize="13"/>
+                            <TextBlock Text="•" Foreground="#71717A"/>
+                            <TextBlock Text="{Binding SelectedDate, StringFormat='{}{0:yyyy-MM-dd}'}" Foreground="#A1A1AA" FontSize="13"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Playback Control Toolbar -->
+            <Border Grid.Row="1" Background="#18181B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="6" Padding="12,8" Margin="0,0,0,8">
+                <Grid ColumnDefinitions="Auto, *, Auto">
+                    <!-- Playback Controls -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                        <Button Content="⏮️ -10s" Height="30" Padding="8,4"/>
+                        <Button Content="◀️ Slow" Height="30" Padding="8,4"/>
+                        <Button Content="▶️ Play" 
+                                Command="{Binding TogglePlayPauseCommand}"
+                                Background="#2563EB" Foreground="White" FontWeight="Bold" Height="30" Padding="16,4"/>
+                        <Button Content="Fast ▶️" Height="30" Padding="8,4"/>
+                        <Button Content="+10s ⏭️" Height="30" Padding="8,4"/>
+                    </StackPanel>
+
+                    <!-- Speed & Format Badges -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border Background="#27272A" CornerRadius="4" Padding="8,4">
+                            <TextBlock Text="{Binding SpeedLabel, StringFormat='Speed: {0}'}" FontSize="12" Foreground="#F4F4F5"/>
+                        </Border>
+                        <Border Background="#1E3A8A" CornerRadius="4" Padding="8,4">
+                            <TextBlock Text="MP4 Zero-Transcode" FontSize="11" Foreground="#93C5FD"/>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Export Tools -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                        <Button Content="📸 Snapshot" Height="30" Padding="10,4"/>
+                        <Button Content="✂️ Export Clip" Background="#059669" Foreground="White" FontWeight="SemiBold" Height="30" Padding="12,4"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- 24-Hour Timeline Control -->
+            <Border Grid.Row="2" Background="#18181B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="6" Padding="8">
+                <Grid RowDefinitions="Auto, Auto">
+                    <!-- Timeline Header & Legend -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="4,0,4,6">
+                        <TextBlock Grid.Column="0" Text="24-HOUR SYNCHRONOUS TIMELINE" FontWeight="Bold" FontSize="11" Foreground="#71717A" VerticalAlignment="Center"/>
+                        
+                        <!-- Legend -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <Border Background="#10B981" Width="10" Height="10" CornerRadius="2"/>
+                                <TextBlock Text="Continuous (24/7)" FontSize="11" Foreground="#A1A1AA"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <Border Background="#F59E0B" Width="10" Height="10" CornerRadius="2"/>
+                                <TextBlock Text="Motion Event" FontSize="11" Foreground="#A1A1AA"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <Border Background="#EF4444" Width="10" Height="10" CornerRadius="2"/>
+                                <TextBlock Text="AI Event" FontSize="11" Foreground="#A1A1AA"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Timeline Surface -->
+                    <controls:TimelineControl x:Name="Timeline" Grid.Row="1"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

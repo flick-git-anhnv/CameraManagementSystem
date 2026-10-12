@@ -18,8 +18,9 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                    <Button x:Name="BtnRecordAll" Content="⏺️ Record All" Height="28" Background="#7F1D1D" Foreground="White"/>
                     <Button x:Name="BtnStopAll" Content="⏹️ Stop All" Height="28"/>
-                    <Button x:Name="BtnAutoFill" Content="▶️ Play All Registered" Height="28" Background="#059669" Foreground="White"/>
+                    <Button x:Name="BtnAutoFill" Content="▶️ Play All" Height="28" Background="#059669" Foreground="White"/>
                 </StackPanel>
             </Grid>
         </Border>

@@ -33,11 +33,13 @@ public partial class MainWindowViewModel : ObservableObject
     private ObservableCollection<CameraDevice> _configuredCameras = new();
 
     public DeviceManagementViewModel DeviceManagementVM { get; }
+    public PlaybackViewModel PlaybackVM { get; }
 
     public MainWindowViewModel()
     {
         _cameraRepo = new SqliteCameraRepository();
         DeviceManagementVM = new DeviceManagementViewModel(_cameraRepo);
+        PlaybackVM = new PlaybackViewModel(_cameraRepo);
 
         _ = RefreshCameraListAsync();
     }
@@ -49,6 +51,10 @@ public partial class MainWindowViewModel : ObservableObject
         if (page == NavigationPage.LiveView)
         {
             _ = RefreshCameraListAsync();
+        }
+        else if (page == NavigationPage.Playback)
+        {
+            _ = PlaybackVM.LoadCamerasAsync();
         }
     }
 
