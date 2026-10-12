@@ -1,93 +1,153 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CMS.App.ViewModels"
+        xmlns:views="using:CMS.App.Views"
+        xmlns:entities="using:CMS.Core.Entities"
         x:Class="CMS.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding Title}"
-        Width="1280" Height="800"
+        Width="1360" Height="820"
         WindowStartupLocation="CenterScreen">
 
     <Grid RowDefinitions="Auto, *, Auto">
-        <!-- Top Menu Bar -->
-        <Border Grid.Row="0" Background="#1E1E1E" Padding="12,8" BorderBrush="#333333" BorderThickness="0,0,0,1">
+        <!-- Top Navigation Bar -->
+        <Border Grid.Row="0" Background="#18181B" Padding="14,10" BorderBrush="#27272A" BorderThickness="0,0,0,1">
             <Grid ColumnDefinitions="Auto, *, Auto">
+                <!-- Brand Logo & Title -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <TextBlock Text="KZTEK VMS" FontWeight="Bold" FontSize="16" Foreground="#3B82F6" VerticalAlignment="Center"/>
-                    <TextBlock Text="•" Foreground="#666666" VerticalAlignment="Center"/>
-                    <TextBlock Text="Camera Management System" FontSize="14" Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                    <Border Background="#2563EB" CornerRadius="4" Padding="6,3">
+                        <TextBlock Text="KZTEK" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                    </Border>
+                    <TextBlock Text="Camera Management System" FontWeight="SemiBold" FontSize="15" Foreground="#F4F4F5" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- Navigation Tabs -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                    <Button Content="📺 Live View" Background="#2563EB" Foreground="White" Padding="14,6" CornerRadius="4"/>
-                    <Button Content="⏪ Playback" Background="#2D2D2D" Foreground="#CCCCCC" Padding="14,6" CornerRadius="4"/>
-                    <Button Content="🤖 AI Analytics" Background="#2D2D2D" Foreground="#CCCCCC" Padding="14,6" CornerRadius="4"/>
-                    <Button Content="🗺️ E-Map" Background="#2D2D2D" Foreground="#CCCCCC" Padding="14,6" CornerRadius="4"/>
-                    <Button Content="⚙️ Device Management" Background="#2D2D2D" Foreground="#CCCCCC" Padding="14,6" CornerRadius="4"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                    <Button Content="📺 Live View" 
+                            Command="{Binding NavigateCommand}" 
+                            CommandParameter="{x:Static vm:NavigationPage.LiveView}"
+                            Background="#27272A" Foreground="White" Padding="14,7" CornerRadius="4"/>
+
+                    <Button Content="⏪ Playback" 
+                            Command="{Binding NavigateCommand}" 
+                            CommandParameter="{x:Static vm:NavigationPage.Playback}"
+                            Background="#27272A" Foreground="#A1A1AA" Padding="14,7" CornerRadius="4"/>
+
+                    <Button Content="🤖 AI Analytics" 
+                            Command="{Binding NavigateCommand}" 
+                            CommandParameter="{x:Static vm:NavigationPage.AiAnalytics}"
+                            Background="#27272A" Foreground="#A1A1AA" Padding="14,7" CornerRadius="4"/>
+
+                    <Button Content="🗺️ E-Map" 
+                            Command="{Binding NavigateCommand}" 
+                            CommandParameter="{x:Static vm:NavigationPage.EMap}"
+                            Background="#27272A" Foreground="#A1A1AA" Padding="14,7" CornerRadius="4"/>
+
+                    <Button Content="⚙️ Device Management" 
+                            Command="{Binding NavigateCommand}" 
+                            CommandParameter="{x:Static vm:NavigationPage.DeviceManagement}"
+                            Background="#2563EB" Foreground="White" FontWeight="SemiBold" Padding="14,7" CornerRadius="4"/>
                 </StackPanel>
 
-                <!-- User & Settings -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <TextBlock Text="👤 Admin" Foreground="#A0A0A0" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <!-- Right Status -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <Border Background="#10B981" CornerRadius="10" Width="8" Height="8" VerticalAlignment="Center"/>
+                    <TextBlock Text="VMS Server Running" FontSize="12" Foreground="#A1A1AA" VerticalAlignment="Center"/>
+                    <TextBlock Text="•" Foreground="#52525B" VerticalAlignment="Center"/>
+                    <TextBlock Text="👤 Administrator" FontSize="12" Foreground="#E4E4E7" VerticalAlignment="Center"/>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Main Workspace -->
-        <Grid Grid.Row="1" ColumnDefinitions="280, *">
-            <!-- Left Sidebar (Device Tree) -->
-            <Border Grid.Column="0" Background="#252526" BorderBrush="#333333" BorderThickness="0,0,1,0" Padding="8">
-                <Grid RowDefinitions="Auto, Auto, *">
-                    <TextBlock Grid.Row="0" Text="DEVICE LIST" FontWeight="SemiBold" FontSize="12" Foreground="#888888" Margin="4,4,4,8"/>
-                    <TextBox Grid.Row="1" PlaceholderText="Search camera (IP/Name)..." Margin="0,0,0,8"/>
-                    
-                    <ScrollViewer Grid.Row="2">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="📁 All Cameras (0)" Foreground="#CCCCCC" Margin="4,4,0,4"/>
-                            <TextBlock Text="   (Scan or Add camera to start)" Foreground="#777777" FontSize="12" Margin="12,0,0,0"/>
-                        </StackPanel>
-                    </ScrollViewer>
-                </Grid>
-            </Border>
-
-            <!-- Video Grid Area -->
-            <Grid Grid.Column="1" Background="#141414">
-                <Border Margin="12" Background="#1A1A1A" CornerRadius="6" BorderBrush="#2A2A2A" BorderThickness="1">
-                    <Grid RowDefinitions="*, Auto">
-                        <!-- Grid Placeholder -->
-                        <Grid Grid.Row="0">
-                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
-                                <TextBlock Text="📹" FontSize="48" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Live View Grid Ready" FontSize="18" FontWeight="SemiBold" Foreground="#FFFFFF" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Ready to connect multi-brand cameras (Hikvision, Dahua, ONVIF, RTSP)" Foreground="#888888" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <!-- Bottom Grid Control Bar -->
-                        <Border Grid.Row="1" Background="#1F1F1F" Padding="12,8" BorderBrush="#2A2A2A" BorderThickness="0,1,0,0">
-                            <Grid ColumnDefinitions="Auto, *, Auto">
-                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
-                                    <Button Content="[ 1 ]" Width="36" Height="28"/>
-                                    <Button Content="[ 4 ]" Width="36" Height="28"/>
-                                    <Button Content="[ 9 ]" Width="36" Height="28"/>
-                                    <Button Content="[ 16 ]" Width="40" Height="28"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                                    <Button Content="⛶ Fullscreen" Height="28"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1">
+            <!-- 1. Live View Page -->
+            <Grid ColumnDefinitions="280, *" IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.LiveView}}">
+                <!-- Left Sidebar: Device Tree -->
+                <Border Grid.Column="0" Background="#18181B" BorderBrush="#27272A" BorderThickness="0,0,1,0" Padding="12">
+                    <Grid RowDefinitions="Auto, Auto, *">
+                        <TextBlock Grid.Row="0" Text="REGISTERED CAMERAS" FontWeight="Bold" FontSize="12" Foreground="#71717A" Margin="0,0,0,8"/>
+                        <TextBox Grid.Row="1" PlaceholderText="Search camera..." Margin="0,0,0,10"/>
+                        
+                        <ScrollViewer Grid.Row="2">
+                            <ItemsControl ItemsSource="{Binding ConfiguredCameras}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="entities:CameraDevice">
+                                        <Border Background="#27272A" CornerRadius="4" Padding="10,8" Margin="0,2">
+                                            <Grid ColumnDefinitions="Auto, *">
+                                                <Border Grid.Column="0" Background="#10B981" CornerRadius="4" Width="8" Height="8" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                <StackPanel Grid.Column="1">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="#FAFAFA" FontSize="13"/>
+                                                    <TextBlock Text="{Binding IpAddress}" FontSize="11" Foreground="#71717A"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
                     </Grid>
                 </Border>
+
+                <!-- Right Video Grid Area -->
+                <Grid Grid.Column="1" Background="#09090B">
+                    <Border Margin="12" Background="#121214" CornerRadius="6" BorderBrush="#27272A" BorderThickness="1">
+                        <Grid RowDefinitions="*, Auto">
+                            <!-- Center Grid View -->
+                            <Grid Grid.Row="0">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                                    <TextBlock Text="📹" FontSize="56" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Multi-Brand Live View Grid" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Supports Hikvision, Dahua, Uniview, Hanwha, ONVIF Profile S/G/T &amp; RTSP" Foreground="#A1A1AA" HorizontalAlignment="Center"/>
+                                    <Button Content="⚙️ Open Device Management to add cameras" 
+                                            Command="{Binding NavigateCommand}" 
+                                            CommandParameter="{x:Static vm:NavigationPage.DeviceManagement}"
+                                            HorizontalAlignment="Center" Margin="0,8,0,0" Padding="16,8" Background="#2563EB" Foreground="White"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Bottom Grid Toolbar -->
+                            <Border Grid.Row="1" Background="#18181B" Padding="12,8" BorderBrush="#27272A" BorderThickness="0,1,0,0">
+                                <Grid ColumnDefinitions="Auto, *, Auto">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
+                                        <Button Content="1x1" Width="40" Height="28"/>
+                                        <Button Content="2x2" Width="40" Height="28" Background="#2563EB" Foreground="White"/>
+                                        <Button Content="3x3" Width="40" Height="28"/>
+                                        <Button Content="4x4" Width="40" Height="28"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                                        <Button Content="📸 Snapshot All" Height="28"/>
+                                        <Button Content="⏺️ Record All" Height="28"/>
+                                        <Button Content="⛶ Fullscreen" Height="28"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- 2. Device Management Page -->
+            <Border IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.DeviceManagement}}">
+                <views:DeviceManagementView DataContext="{Binding DeviceManagementVM}"/>
+            </Border>
+
+            <!-- 3. Other Pages Placeholder -->
+            <Grid IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.Playback}}">
+                <TextBlock Text="⏪ Playback Engine Timeline will be loaded here (Milestone 4)" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#71717A" FontSize="16"/>
+            </Grid>
+
+            <Grid IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.AiAnalytics}}">
+                <TextBlock Text="🤖 Edge AI Analytics (Vehicles &amp; Persons) will be loaded here (Milestone 7 &amp; 8)" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#71717A" FontSize="16"/>
             </Grid>
         </Grid>
 
         <!-- Bottom Status Bar -->
-        <Border Grid.Row="2" Background="#007ACC" Padding="12,3">
+        <Border Grid.Row="2" Background="#0F172A" Padding="14,4" BorderBrush="#1E293B" BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="Auto, *, Auto">
-                <TextBlock Grid.Column="0" Text="{Binding SystemStatus}" Foreground="White" FontSize="12"/>
-                <TextBlock Grid.Column="2" Text="KZTEK CMS Core v1.0.0" Foreground="White" FontSize="12"/>
+                <TextBlock Grid.Column="0" Text="{Binding SystemStatus}" Foreground="#94A3B8" FontSize="12"/>
+                <TextBlock Grid.Column="2" Text="KZTEK VMS Core v1.0.0 • .NET 8 Multiplatform" Foreground="#64748B" FontSize="12"/>
             </Grid>
         </Border>
     </Grid>
