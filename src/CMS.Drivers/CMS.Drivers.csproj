@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CMS.Core\CMS.Core.csproj" />
+    <ProjectReference Include="E:\KZTEK\Code_Git\1.Window\0.BaseLIB\Kztek.Camera\Kztek.Camera\1.Source\Kztek.Cameras.Avalonia\Kztek.Cameras.Avalonia.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Markup.Xaml.Loader" Version="12.1.2" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="MsBox.Avalonia" Version="3.0.0-rc2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CMS.Core\CMS.Core.csproj" />
+    <ProjectReference Include="..\CMS.Infrastructure\CMS.Infrastructure.csproj" />
+    <ProjectReference Include="..\CMS.Drivers\CMS.Drivers.csproj" />
+    <ProjectReference Include="..\CMS.MediaServer\CMS.MediaServer.csproj" />
+    <ProjectReference Include="..\CMS.AI\CMS.AI.csproj" />
+    <ProjectReference Include="E:\KZTEK\Code_Git\1.Window\0.BaseLIB\Kztek.Camera\Kztek.Camera\1.Source\Kztek.Cameras.Avalonia\Kztek.Cameras.Avalonia.csproj" />
+  </ItemGroup>
+</Project>

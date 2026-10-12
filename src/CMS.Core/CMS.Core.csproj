@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="E:\KZTEK\Code_Git\1.Window\1.IPARKING\v8\6.Avalonia\parking-v8-app-avalonia\src\Kztek.Object.MultyPlatform\Kztek.Object.MultyPlatform.csproj" />
+    <ProjectReference Include="E:\KZTEK\Code_Git\1.Window\1.IPARKING\v8\6.Avalonia\parking-v8-app-avalonia\src\Kztek.Tool.MultyPlatform\Kztek.Tool.MultyPlatform.csproj" />
+  </ItemGroup>
+
+</Project>
