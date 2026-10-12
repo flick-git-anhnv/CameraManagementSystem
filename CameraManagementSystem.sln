@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kztek.Api.MultyPlatform", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kztek.Cameras.Avalonia", "libs\Kztek.Cameras.Avalonia\Kztek.Cameras.Avalonia.csproj", "{D0632AC5-B158-4743-9E66-FD08A1F9B3AB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kztek.Cameras.Avalonia.Tests", "libs\Kztek.Cameras.Avalonia.Tests\Kztek.Cameras.Avalonia.Tests.csproj", "{B82D9677-D084-43A0-B889-57221E7343A6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -171,6 +173,18 @@ Global
 		{D0632AC5-B158-4743-9E66-FD08A1F9B3AB}.Release|x64.Build.0 = Release|Any CPU
 		{D0632AC5-B158-4743-9E66-FD08A1F9B3AB}.Release|x86.ActiveCfg = Release|Any CPU
 		{D0632AC5-B158-4743-9E66-FD08A1F9B3AB}.Release|x86.Build.0 = Release|Any CPU
+		{B82D9677-D084-43A0-B889-57221E7343A6}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{B82D9677-D084-43A0-B889-57221E7343A6}.Debug|Any CPU.Build.0 = Debug|x64
+		{B82D9677-D084-43A0-B889-57221E7343A6}.Debug|x64.ActiveCfg = Debug|x64
+		{B82D9677-D084-43A0-B889-57221E7343A6}.Debug|x64.Build.0 = Debug|x64
+		{B82D9677-D084-43A0-B889-57221E7343A6}.Debug|x86.ActiveCfg = Debug|x64
+		{B82D9677-D084-43A0-B889-57221E7343A6}.Debug|x86.Build.0 = Debug|x64
+		{B82D9677-D084-43A0-B889-57221E7343A6}.Release|Any CPU.ActiveCfg = Release|x64
+		{B82D9677-D084-43A0-B889-57221E7343A6}.Release|Any CPU.Build.0 = Release|x64
+		{B82D9677-D084-43A0-B889-57221E7343A6}.Release|x64.ActiveCfg = Release|x64
+		{B82D9677-D084-43A0-B889-57221E7343A6}.Release|x64.Build.0 = Release|x64
+		{B82D9677-D084-43A0-B889-57221E7343A6}.Release|x86.ActiveCfg = Release|x64
+		{B82D9677-D084-43A0-B889-57221E7343A6}.Release|x86.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -187,5 +201,6 @@ Global
 		{504F295E-F6CB-4506-850F-F5FF71B23E0E} = {6C4D298B-81FB-2B6B-5AB6-46205EDDC72C}
 		{FFD97F2C-2A12-40CC-9A9F-B58577128C6D} = {6C4D298B-81FB-2B6B-5AB6-46205EDDC72C}
 		{D0632AC5-B158-4743-9E66-FD08A1F9B3AB} = {6C4D298B-81FB-2B6B-5AB6-46205EDDC72C}
+		{B82D9677-D084-43A0-B889-57221E7343A6} = {6C4D298B-81FB-2B6B-5AB6-46205EDDC72C}
 	EndGlobalSection
 EndGlobal
