@@ -45,6 +45,32 @@ CREATE INDEX IF NOT EXISTS IDX_VideoSegments_Cam_Time ON VideoSegments (CameraId
         using var conn = new SqliteConnection(_connectionString);
         await conn.OpenAsync();
 
+        string checkSql = "SELECT Id FROM VideoSegments WHERE FilePath = @FilePath LIMIT 1;";
+        using (var checkCmd = new SqliteCommand(checkSql, conn))
+        {
+            checkCmd.Parameters.AddWithValue("@FilePath", s.FilePath);
+            var existingId = await checkCmd.ExecuteScalarAsync() as string;
+            if (!string.IsNullOrEmpty(existingId))
+            {
+                string updateSql = @"
+UPDATE VideoSegments
+SET StartTime = @StartTime,
+    EndTime = @EndTime,
+    FileSizeBytes = @FileSizeBytes,
+    RecordingType = @RecordingType,
+    StreamType = @StreamType
+WHERE Id = @Id;";
+                using var updateCmd = new SqliteCommand(updateSql, conn);
+                updateCmd.Parameters.AddWithValue("@Id", existingId);
+                updateCmd.Parameters.AddWithValue("@StartTime", s.StartTime.ToString("O"));
+                updateCmd.Parameters.AddWithValue("@EndTime", s.EndTime.ToString("O"));
+                updateCmd.Parameters.AddWithValue("@FileSizeBytes", s.FileSizeBytes);
+                updateCmd.Parameters.AddWithValue("@RecordingType", (int)s.RecordingType);
+                updateCmd.Parameters.AddWithValue("@StreamType", (int)s.StreamType);
+                return await updateCmd.ExecuteNonQueryAsync() > 0;
+            }
+        }
+
         string sql = @"
 INSERT INTO VideoSegments (
     Id, CameraId, CameraName, StartTime, EndTime, FilePath,
@@ -71,7 +97,7 @@ INSERT INTO VideoSegments (
 
     public async Task<List<VideoSegment>> GetSegmentsAsync(string cameraId, DateTime startTime, DateTime endTime)
     {
-        var list = new List<VideoSegment>();
+        var rawList = new List<VideoSegment>();
         using var conn = new SqliteConnection(_connectionString);
         await conn.OpenAsync();
 
@@ -79,32 +105,80 @@ INSERT INTO VideoSegments (
 SELECT Id, CameraId, CameraName, StartTime, EndTime, FilePath, FileSizeBytes, RecordingType, StreamType, IsLocked
 FROM VideoSegments
 WHERE CameraId = @CameraId AND EndTime >= @StartTime AND StartTime <= @EndTime
-ORDER BY StartTime ASC;";
+ORDER BY StartTime ASC, EndTime DESC;";
 
-        using var cmd = new SqliteCommand(sql, conn);
-        cmd.Parameters.AddWithValue("@CameraId", cameraId);
-        cmd.Parameters.AddWithValue("@StartTime", startTime.ToString("O"));
-        cmd.Parameters.AddWithValue("@EndTime", endTime.ToString("O"));
-
-        using var r = await cmd.ExecuteReaderAsync();
-        while (await r.ReadAsync())
+        using (var cmd = new SqliteCommand(sql, conn))
         {
-            list.Add(new VideoSegment
+            cmd.Parameters.AddWithValue("@CameraId", cameraId);
+            cmd.Parameters.AddWithValue("@StartTime", startTime.ToString("O"));
+            cmd.Parameters.AddWithValue("@EndTime", endTime.ToString("O"));
+
+            using var r = await cmd.ExecuteReaderAsync();
+            while (await r.ReadAsync())
             {
-                Id = r.GetString(0),
-                CameraId = r.GetString(1),
-                CameraName = r.IsDBNull(2) ? "" : r.GetString(2),
-                StartTime = DateTime.Parse(r.GetString(3)),
-                EndTime = DateTime.Parse(r.GetString(4)),
-                FilePath = r.GetString(5),
-                FileSizeBytes = r.GetInt64(6),
-                RecordingType = (RecordingMode)r.GetInt32(7),
-                StreamType = (StreamType)r.GetInt32(8),
-                IsLocked = r.GetInt32(9) == 1
-            });
+                rawList.Add(new VideoSegment
+                {
+                    Id = r.GetString(0),
+                    CameraId = r.GetString(1),
+                    CameraName = r.IsDBNull(2) ? "" : r.GetString(2),
+                    StartTime = DateTime.Parse(r.GetString(3)),
+                    EndTime = DateTime.Parse(r.GetString(4)),
+                    FilePath = r.GetString(5),
+                    FileSizeBytes = r.GetInt64(6),
+                    RecordingType = (RecordingMode)r.GetInt32(7),
+                    StreamType = (StreamType)r.GetInt32(8),
+                    IsLocked = r.GetInt32(9) == 1
+                });
+            }
         }
 
-        return list;
+        // Deduplicate by FilePath and refresh file metadata from disk when available
+        var deduplicated = new List<VideoSegment>();
+        var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var duplicateIdsToDelete = new List<string>();
+
+        foreach (var seg in rawList)
+        {
+            if (!string.IsNullOrWhiteSpace(seg.FilePath) && !seenPaths.Add(seg.FilePath))
+            {
+                duplicateIdsToDelete.Add(seg.Id);
+                continue;
+            }
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(seg.FilePath) && File.Exists(seg.FilePath))
+                {
+                    var fi = new FileInfo(seg.FilePath);
+                    if (fi.Length > 0)
+                    {
+                        seg.FileSizeBytes = fi.Length;
+                    }
+                    if (fi.LastWriteTime > seg.EndTime)
+                    {
+                        seg.EndTime = fi.LastWriteTime;
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            deduplicated.Add(seg);
+        }
+
+        foreach (var dupId in duplicateIdsToDelete)
+        {
+            try
+            {
+                await DeleteSegmentAsync(dupId);
+            }
+            catch
+            {
+            }
+        }
+
+        return deduplicated.OrderBy(s => s.StartTime).ToList();
     }
 
     public async Task<List<VideoSegment>> GetOldestUnlockedSegmentsAsync(int count)

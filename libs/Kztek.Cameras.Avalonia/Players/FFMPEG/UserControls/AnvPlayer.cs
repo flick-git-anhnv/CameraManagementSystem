@@ -359,6 +359,19 @@ namespace Kztek.Cameras
             set => _service.VideoSource = value;
         }
         public bool IsRunning => _service.IsConnect;
+        public bool IsPaused
+        {
+            get => _service.IsPaused;
+            set => _service.IsPaused = value;
+        }
+        public double PlaybackSpeed
+        {
+            get => _service.PlaybackSpeed;
+            set => _service.PlaybackSpeed = value;
+        }
+        public double CurrentPositionSeconds => _service.Decoder?.CurrentPositionSeconds ?? 0;
+        public double DurationSeconds => _service.Decoder?.DurationSeconds ?? 0;
+        public void SeekSeconds(double seconds) => _service.Decoder?.RequestSeekSeconds(seconds);
         public EmVirtualLoopType VirtualLoopType
         {
             get => _service.VirtualLoopType;

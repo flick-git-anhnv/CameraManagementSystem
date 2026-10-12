@@ -22,6 +22,7 @@ public class ZeroTranscodeRecorder : IDisposable
     private DateTime _currentSegmentStartTime;
 
     public string CameraId => _camera.Id;
+    public CameraDevice Camera => _camera;
     public bool IsRecording => _isRecording;
 
     public ZeroTranscodeRecorder(CameraDevice camera, StorageConfig config, IVideoSegmentRepository segmentRepo)
@@ -61,6 +62,7 @@ public class ZeroTranscodeRecorder : IDisposable
             // -rtsp_transport tcp : chống mất gói qua mạng
             // -c copy            : không decode/encode lại (0% CPU)
             // -f segment         : tự động ngắt file theo thời gian
+            // -segment_format_options movflags=+frag_keyframe+empty_moov+default_base_moof : đảm bảo file MP4 luôn hợp lệ ngay cả khi đang ghi hoặc dừng đột ngột
             // -reset_timestamps 1: reset timestamp mỗi file để tương thích mọi media player
             int segmentSeconds = Math.Max(60, _config.SegmentDurationMinutes * 60);
             string outputPattern = Path.Combine(_cameraStorageDir, $"{_camera.Id}_%Y%m%d_%H%M%S.mp4");
@@ -68,9 +70,10 @@ public class ZeroTranscodeRecorder : IDisposable
             var psi = new ProcessStartInfo
             {
                 FileName = ffmpegPath,
-                Arguments = $"-nostdin -hide_banner -loglevel error -rtsp_transport tcp -i \"{rtspUrl}\" -c copy -f segment -segment_time {segmentSeconds} -segment_format mp4 -reset_timestamps 1 -strftime 1 \"{outputPattern}\"",
+                Arguments = $"-hide_banner -loglevel error -rtsp_transport tcp -i \"{rtspUrl}\" -c copy -f segment -segment_time {segmentSeconds} -segment_format mp4 -segment_format_options movflags=+frag_keyframe+empty_moov+default_base_moof -reset_timestamps 1 -strftime 1 \"{outputPattern}\"",
                 UseShellExecute = false,
                 CreateNoWindow = true,
+                RedirectStandardInput = true,
                 RedirectStandardError = true
             };
 
@@ -107,8 +110,30 @@ public class ZeroTranscodeRecorder : IDisposable
 
             if (_ffmpegProcess != null && !_ffmpegProcess.HasExited)
             {
-                _ffmpegProcess.Kill();
-                await _ffmpegProcess.WaitForExitAsync();
+                try
+                {
+                    await _ffmpegProcess.StandardInput.WriteLineAsync("q");
+                    await _ffmpegProcess.StandardInput.FlushAsync();
+                    _ffmpegProcess.StandardInput.Close();
+                }
+                catch
+                {
+                }
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(2500));
+                try
+                {
+                    await _ffmpegProcess.WaitForExitAsync(cts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    if (!_ffmpegProcess.HasExited)
+                    {
+                        _ffmpegProcess.Kill();
+                        await _ffmpegProcess.WaitForExitAsync();
+                    }
+                }
+
                 _ffmpegProcess.Dispose();
                 _ffmpegProcess = null;
             }
@@ -130,9 +155,9 @@ public class ZeroTranscodeRecorder : IDisposable
 
         _fileWatcher.Created += async (_, e) =>
         {
-            // Khi file mới được tạo, file trước đó đã kết thúc ghi
-            await Task.Delay(1000); // Chờ ffmpeg finalize file
-            IndexVideoFile(e.FullPath);
+            // Khi file phân đoạn mới được tạo, cập nhật tất cả các file phân đoạn trước đó
+            await Task.Delay(1500);
+            ScanAndIndexRecentFiles();
         };
 
         _fileWatcher.EnableRaisingEvents = true;
@@ -147,14 +172,19 @@ public class ZeroTranscodeRecorder : IDisposable
             var fi = new FileInfo(filePath);
             if (fi.Length < 1024) return; // Bỏ qua file rác rỗng
 
+            DateTime startTime = TryParseStartTimeFromFileName(filePath, fi.CreationTime);
+            DateTime endTime = fi.LastWriteTime > startTime.AddSeconds(1)
+                ? fi.LastWriteTime
+                : startTime.AddSeconds(Math.Max(1, (DateTime.Now - startTime).TotalSeconds));
+
             var seg = new VideoSegment
             {
                 CameraId = _camera.Id,
                 CameraName = _camera.Name,
                 FilePath = filePath,
                 FileSizeBytes = fi.Length,
-                StartTime = fi.CreationTime,
-                EndTime = fi.LastWriteTime > fi.CreationTime ? fi.LastWriteTime : fi.CreationTime.AddMinutes(_config.SegmentDurationMinutes),
+                StartTime = startTime,
+                EndTime = endTime,
                 RecordingType = _camera.RecordMode,
                 StreamType = _camera.RecordSubStream ? StreamType.SubStream : StreamType.MainStream
             };
@@ -164,6 +194,34 @@ public class ZeroTranscodeRecorder : IDisposable
         catch
         {
         }
+    }
+
+    private static DateTime TryParseStartTimeFromFileName(string filePath, DateTime fallback)
+    {
+        try
+        {
+            string name = Path.GetFileNameWithoutExtension(filePath);
+            // Pattern: {CameraId}_yyyyMMdd_HHmmss
+            var parts = name.Split('_');
+            if (parts.Length >= 3)
+            {
+                string datePart = parts[^2];
+                string timePart = parts[^1];
+                if (DateTime.TryParseExact(
+                        $"{datePart}_{timePart}",
+                        "yyyyMMdd_HHmmss",
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.AssumeLocal,
+                        out var parsed))
+                {
+                    return parsed;
+                }
+            }
+        }
+        catch
+        {
+        }
+        return fallback;
     }
 
     private void ScanAndIndexRecentFiles()

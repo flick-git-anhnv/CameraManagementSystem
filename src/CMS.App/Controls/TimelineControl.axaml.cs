@@ -56,13 +56,17 @@ public partial class TimelineControl : UserControl
         RedrawTimeline();
     }
 
+    private const double HorizontalPadding = 12.0;
+
     public void RedrawTimeline()
     {
         TimelineCanvas.Children.Clear();
         double width = this.Bounds.Width;
         double height = this.Bounds.Height;
 
-        if (width <= 0 || height <= 0) return;
+        if (width <= 2 * HorizontalPadding || height <= 0) return;
+
+        double usableWidth = width - (2 * HorizontalPadding);
 
         IBrush majorTickBrush = this.TryFindResource("ThemeTimelineTickMajorBrush", out var majorRes) && majorRes is IBrush mb ? mb : Brush.Parse("#52525B");
         IBrush minorTickBrush = this.TryFindResource("ThemeTimelineTickMinorBrush", out var minorRes) && minorRes is IBrush mnb ? mnb : Brush.Parse("#27272A");
@@ -71,18 +75,22 @@ public partial class TimelineControl : UserControl
         // 1. Vẽ các vạch giờ (0h - 24h)
         for (int h = 0; h <= 24; h++)
         {
-            double x = (h / 24.0) * width;
+            double x = HorizontalPadding + (h / 24.0) * usableWidth;
+            bool isMajor = h % 6 == 0;
+            bool isEven = h % 2 == 0;
+
+            double tickEndY = isMajor ? height : (isEven ? height * 0.45 : height * 0.25);
 
             var hourLine = new Line
             {
                 StartPoint = new Point(x, 0),
-                EndPoint = new Point(x, h % 6 == 0 ? height : height * 0.4),
-                Stroke = h % 6 == 0 ? majorTickBrush : minorTickBrush,
-                StrokeThickness = 1
+                EndPoint = new Point(x, tickEndY),
+                Stroke = isMajor ? majorTickBrush : minorTickBrush,
+                StrokeThickness = isMajor ? 1.5 : 1
             };
             TimelineCanvas.Children.Add(hourLine);
 
-            if (h % 2 == 0 && h < 24)
+            if (isEven && h < 24)
             {
                 var label = new TextBlock
                 {
@@ -111,8 +119,8 @@ public partial class TimelineControl : UserControl
             double startSec = (start - dayStart).TotalSeconds;
             double segSec = (end - start).TotalSeconds;
 
-            double x = (startSec / totalSeconds) * width;
-            double w = Math.Max(2, (segSec / totalSeconds) * width);
+            double x = HorizontalPadding + (startSec / totalSeconds) * usableWidth;
+            double w = Math.Max(6, (segSec / totalSeconds) * usableWidth);
 
             IBrush fillBrush = seg.RecordingType switch
             {
@@ -124,11 +132,11 @@ public partial class TimelineControl : UserControl
             var rect = new Rectangle
             {
                 Width = w,
-                Height = height * 0.45,
+                Height = height * 0.42,
                 Fill = fillBrush,
-                RadiusX = 2,
-                RadiusY = 2,
-                Opacity = 0.85
+                RadiusX = 3,
+                RadiusY = 3,
+                Opacity = 0.9
             };
 
             Canvas.SetLeft(rect, x);
@@ -142,10 +150,11 @@ public partial class TimelineControl : UserControl
     private void UpdatePlayheadPosition()
     {
         double width = this.Bounds.Width;
-        if (width <= 0) return;
+        if (width <= 2 * HorizontalPadding) return;
 
-        double ratio = _currentTime.TotalSeconds / 86400.0;
-        double x = ratio * width;
+        double usableWidth = width - (2 * HorizontalPadding);
+        double ratio = Math.Clamp(_currentTime.TotalSeconds / 86400.0, 0.0, 1.0);
+        double x = HorizontalPadding + ratio * usableWidth;
 
         PlayheadLine.StartPoint = new Point(x, 0);
         PlayheadLine.EndPoint = new Point(x, this.Bounds.Height);
@@ -176,10 +185,11 @@ public partial class TimelineControl : UserControl
     private void SeekToPosition(double x)
     {
         double width = this.Bounds.Width;
-        if (width <= 0) return;
+        if (width <= 2 * HorizontalPadding) return;
 
-        double clampedX = Math.Clamp(x, 0, width);
-        double ratio = clampedX / width;
+        double usableWidth = width - (2 * HorizontalPadding);
+        double clampedX = Math.Clamp(x - HorizontalPadding, 0, usableWidth);
+        double ratio = clampedX / usableWidth;
         double targetSeconds = ratio * 86400.0;
 
         CurrentTime = TimeSpan.FromSeconds(targetSeconds);

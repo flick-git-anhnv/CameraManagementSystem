@@ -129,30 +129,78 @@
 
                     <!-- Cameras Table -->
                     <Border Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}" CornerRadius="6" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" Padding="10">
-                        <ItemsControl ItemsSource="{Binding Cameras}">
+                        <ItemsControl ItemsSource="{Binding CameraPolicies}">
                             <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="entities:CameraDevice">
-                                    <Border Background="{DynamicResource ThemeItemContainerBackgroundBrush}" CornerRadius="6" Padding="12,10" Margin="0,3">
-                                        <Grid ColumnDefinitions="Auto, *, 220, 200">
-                                            <!-- Camera Icon & Info -->
-                                            <TextBlock Grid.Column="0" Text="📹" FontSize="20" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}"/>
-                                                <TextBlock Text="{Binding IpAddress, StringFormat='IP: {0}'}" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
-                                            </StackPanel>
+                                <DataTemplate x:DataType="vm:CameraRecordingPolicyItem">
+                                    <Border Background="{DynamicResource ThemeItemContainerBackgroundBrush}" CornerRadius="6" Padding="14,12" Margin="0,4" BorderBrush="{DynamicResource ThemeItemContainerBorderBrush}" BorderThickness="1">
+                                        <StackPanel Spacing="10">
+                                            <!-- Main Row -->
+                                            <Grid ColumnDefinitions="Auto, *, 250, 220">
+                                                <!-- Camera Icon & Info -->
+                                                <TextBlock Grid.Column="0" Text="📹" FontSize="20" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding RecordingStatusText}" FontSize="11" FontWeight="SemiBold" Foreground="{Binding RecordingStatusColor}" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding IpAddress, StringFormat='IP: {0}'}" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                                                </StackPanel>
 
-                                            <!-- Recording Mode Selector -->
-                                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,14,0">
-                                                <TextBlock Text="Chế độ ghi hình:" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}" Margin="0,0,0,2"/>
-                                                <ComboBox ItemsSource="{Binding $parent[UserControl].((vm:StorageConfigViewModel)DataContext).AvailableRecordModes}"
-                                                          SelectedItem="{Binding RecordMode}" HorizontalAlignment="Stretch"/>
-                                            </StackPanel>
+                                                <!-- Recording Mode Selector (Việt hóa) -->
+                                                <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,16,0" Spacing="3">
+                                                    <TextBlock Text="Chế độ ghi hình:" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}"/>
+                                                    <ComboBox ItemsSource="{Binding $parent[UserControl].((vm:StorageConfigViewModel)DataContext).AvailableRecordModeOptions}"
+                                                              SelectedItem="{Binding SelectedRecordModeOption}"
+                                                              HorizontalAlignment="Stretch">
+                                                        <ComboBox.ItemTemplate>
+                                                            <DataTemplate x:DataType="vm:RecordingModeOption">
+                                                                <TextBlock Text="{Binding DisplayName}"/>
+                                                            </DataTemplate>
+                                                        </ComboBox.ItemTemplate>
+                                                    </ComboBox>
+                                                </StackPanel>
 
-                                            <!-- Stream Selection -->
-                                            <StackPanel Grid.Column="3" VerticalAlignment="Center">
-                                                <CheckBox Content="Ghi luồng phụ (Tiết kiệm dung lượng)" IsChecked="{Binding RecordSubStream}" FontSize="12"/>
-                                            </StackPanel>
-                                        </Grid>
+                                                <!-- Stream Selection -->
+                                                <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                                                    <CheckBox Content="Ghi luồng phụ (Tiết kiệm dung lượng)" IsChecked="{Binding RecordSubStream}" FontSize="12"/>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Schedule Configuration Row (Only visible when RecordMode == Schedule) -->
+                                            <Border IsVisible="{Binding IsScheduleMode}"
+                                                    Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}"
+                                                    BorderBrush="{DynamicResource ThemeCardBorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="6"
+                                                    Padding="12,10"
+                                                    Margin="32,2,0,0">
+                                                <Grid ColumnDefinitions="Auto, 110, Auto, 110, 24, Auto, *">
+                                                    <TextBlock Grid.Column="0" Text="🕒 Khung giờ ghi:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                    <ComboBox Grid.Column="1"
+                                                              ItemsSource="{Binding $parent[UserControl].((vm:StorageConfigViewModel)DataContext).AvailableTimeSlots}"
+                                                              SelectedItem="{Binding ScheduleStartTime}"
+                                                              HorizontalAlignment="Stretch"
+                                                              VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="2" Text="đến" FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" VerticalAlignment="Center" Margin="8,0"/>
+                                                    <ComboBox Grid.Column="3"
+                                                              ItemsSource="{Binding $parent[UserControl].((vm:StorageConfigViewModel)DataContext).AvailableTimeSlots}"
+                                                              SelectedItem="{Binding ScheduleEndTime}"
+                                                              HorizontalAlignment="Stretch"
+                                                              VerticalAlignment="Center"/>
+
+                                                    <TextBlock Grid.Column="5" Text="📅 Ngày trong tuần:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                    <WrapPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <CheckBox Content="T2" IsChecked="{Binding IsMon}" Margin="0,0,10,0" FontSize="12"/>
+                                                        <CheckBox Content="T3" IsChecked="{Binding IsTue}" Margin="0,0,10,0" FontSize="12"/>
+                                                        <CheckBox Content="T4" IsChecked="{Binding IsWed}" Margin="0,0,10,0" FontSize="12"/>
+                                                        <CheckBox Content="T5" IsChecked="{Binding IsThu}" Margin="0,0,10,0" FontSize="12"/>
+                                                        <CheckBox Content="T6" IsChecked="{Binding IsFri}" Margin="0,0,10,0" FontSize="12"/>
+                                                        <CheckBox Content="T7" IsChecked="{Binding IsSat}" Margin="0,0,10,0" FontSize="12"/>
+                                                        <CheckBox Content="CN" IsChecked="{Binding IsSun}" FontSize="12"/>
+                                                    </WrapPanel>
+                                                </Grid>
+                                            </Border>
+                                        </StackPanel>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

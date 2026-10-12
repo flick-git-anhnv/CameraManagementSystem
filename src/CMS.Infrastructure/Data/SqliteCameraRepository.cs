@@ -40,16 +40,40 @@ CREATE TABLE IF NOT EXISTS Cameras (
     HasPtz INTEGER,
     HasAudio INTEGER,
     EnabledAiFeatures INTEGER,
-    RecordMode INTEGER,
+        RecordMode INTEGER,
     SegmentMinutes INTEGER,
     RecordSubStream INTEGER,
     Status INTEGER,
     LastOnlineTime TEXT,
-    LastError TEXT
+    LastError TEXT,
+    ScheduleStartTime TEXT,
+    ScheduleEndTime TEXT,
+    ScheduleDays TEXT
 );";
 
         using var cmd = new SqliteCommand(sql, conn);
         cmd.ExecuteNonQuery();
+
+        // Tự động nâng cấp CSDL cũ nếu chưa có các cột lịch trình
+        string[] alterColumns =
+        {
+            "ALTER TABLE Cameras ADD COLUMN ScheduleStartTime TEXT DEFAULT '07:00';",
+            "ALTER TABLE Cameras ADD COLUMN ScheduleEndTime TEXT DEFAULT '19:00';",
+            "ALTER TABLE Cameras ADD COLUMN ScheduleDays TEXT DEFAULT '1,2,3,4,5,6,0';"
+        };
+
+        foreach (var alterSql in alterColumns)
+        {
+            try
+            {
+                using var alterCmd = new SqliteCommand(alterSql, conn);
+                alterCmd.ExecuteNonQuery();
+            }
+            catch
+            {
+                // Cột đã tồn tại
+            }
+        }
     }
 
     public async Task<List<CameraDevice>> GetAllAsync()
@@ -98,12 +122,12 @@ INSERT OR REPLACE INTO Cameras (
     Id, Name, Code, GroupName, IpAddress, HttpPort, RtspPort, OnvifPort,
     Username, Password, Channel, Brand, CustomMainRtspUrl, CustomSubRtspUrl,
     HasPtz, HasAudio, EnabledAiFeatures, RecordMode, SegmentMinutes, RecordSubStream,
-    Status, LastOnlineTime, LastError
+    Status, LastOnlineTime, LastError, ScheduleStartTime, ScheduleEndTime, ScheduleDays
 ) VALUES (
     @Id, @Name, @Code, @GroupName, @IpAddress, @HttpPort, @RtspPort, @OnvifPort,
     @Username, @Password, @Channel, @Brand, @CustomMainRtspUrl, @CustomSubRtspUrl,
     @HasPtz, @HasAudio, @EnabledAiFeatures, @RecordMode, @SegmentMinutes, @RecordSubStream,
-    @Status, @LastOnlineTime, @LastError
+    @Status, @LastOnlineTime, @LastError, @ScheduleStartTime, @ScheduleEndTime, @ScheduleDays
 );";
 
         using var cmd = new SqliteCommand(sql, conn);
@@ -128,7 +152,7 @@ INSERT OR REPLACE INTO Cameras (
 
     private static CameraDevice ReadCamera(SqliteDataReader r)
     {
-        return new CameraDevice
+        var cam = new CameraDevice
         {
             Id = r.GetString(0),
             Name = r.GetString(1),
@@ -154,6 +178,15 @@ INSERT OR REPLACE INTO Cameras (
             LastOnlineTime = r.IsDBNull(21) ? null : DateTime.Parse(r.GetString(21)),
             LastError = r.IsDBNull(22) ? "" : r.GetString(22)
         };
+
+        if (r.FieldCount > 23 && !r.IsDBNull(23))
+            cam.ScheduleStartTime = r.GetString(23);
+        if (r.FieldCount > 24 && !r.IsDBNull(24))
+            cam.ScheduleEndTime = r.GetString(24);
+        if (r.FieldCount > 25 && !r.IsDBNull(25))
+            cam.ScheduleDays = r.GetString(25);
+
+        return cam;
     }
 
     private static void AddParameters(SqliteCommand cmd, CameraDevice cam)
@@ -181,5 +214,8 @@ INSERT OR REPLACE INTO Cameras (
         cmd.Parameters.AddWithValue("@Status", (int)cam.Status);
         cmd.Parameters.AddWithValue("@LastOnlineTime", cam.LastOnlineTime.HasValue ? cam.LastOnlineTime.Value.ToString("O") : (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@LastError", (object?)cam.LastError ?? "");
+        cmd.Parameters.AddWithValue("@ScheduleStartTime", (object?)cam.ScheduleStartTime ?? "07:00");
+        cmd.Parameters.AddWithValue("@ScheduleEndTime", (object?)cam.ScheduleEndTime ?? "19:00");
+        cmd.Parameters.AddWithValue("@ScheduleDays", (object?)cam.ScheduleDays ?? "1,2,3,4,5,6,0");
     }
 }

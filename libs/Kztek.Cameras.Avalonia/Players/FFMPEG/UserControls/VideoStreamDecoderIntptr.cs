@@ -85,7 +85,34 @@ namespace Kztek.Cameras
         private bool _isLocalFile = false;
         private long _playbackStartTick = 0;
         private long _streamStartPts = long.MinValue;
+        private long _initialPts = long.MinValue;
         private AVRational _timeBase;
+        private double _playbackSpeed = 1.0;
+        private double _pendingSeekSeconds = double.NaN;
+
+        public bool IsLocalFile => _isLocalFile;
+        public double CurrentPositionSeconds { get; private set; }
+        public double DurationSeconds { get; private set; }
+
+        public double PlaybackSpeed
+        {
+            get => _playbackSpeed;
+            set
+            {
+                _playbackSpeed = Math.Clamp(value, 0.25, 8.0);
+                _streamStartPts = long.MinValue;
+            }
+        }
+
+        public void ResetPlaybackClock()
+        {
+            _streamStartPts = long.MinValue;
+        }
+
+        public void RequestSeekSeconds(double seconds)
+        {
+            Volatile.Write(ref _pendingSeekSeconds, Math.Max(0, seconds));
+        }
 
         public event NewFrameHandler NewFrame;
 
@@ -164,6 +191,7 @@ namespace Kztek.Cameras
                     return false;
 
                 AVFormatContext formatContext = Marshal.PtrToStructure<AVFormatContext>(fmtCtx);
+
                 IntPtr codecCtx = IntPtr.Zero;
 
                 if (isCpu)
@@ -217,6 +245,7 @@ namespace Kztek.Cameras
             if (!_isLocalFile || pts == long.MinValue || pts < 0) return;
             if (_timeBase.den == 0) return;
 
+            double speed = Math.Clamp(_playbackSpeed, 0.25, 8.0);
             if (_streamStartPts == long.MinValue)
             {
                 _streamStartPts = pts;
@@ -224,7 +253,7 @@ namespace Kztek.Cameras
                 return;
             }
 
-            double streamElapsedMs = (pts - _streamStartPts) * 1000.0 * _timeBase.num / _timeBase.den;
+            double streamElapsedMs = ((pts - _streamStartPts) * 1000.0 * _timeBase.num / _timeBase.den) / speed;
             double wallElapsedMs = Environment.TickCount64 - _playbackStartTick;
 
             int sleepMs = (int)(streamElapsedMs - wallElapsedMs);
@@ -256,12 +285,45 @@ namespace Kztek.Cameras
 
             while (!token.IsCancellationRequested)
             {
+                if (_isLocalFile)
+                {
+                    double seekTarget = Interlocked.Exchange(ref _pendingSeekSeconds, double.NaN);
+                    if (!double.IsNaN(seekTarget) && _timeBase.den > 0 && _timeBase.num > 0)
+                    {
+                        long basePts = _initialPts != long.MinValue ? _initialPts : 0;
+                        long targetPts = basePts + (long)(seekTarget * _timeBase.den / _timeBase.num);
+                        const int AVSEEK_FLAG_BACKWARD = 1;
+                        FFMPEG.av_seek_frame(fmtCtx, _streamIndex, targetPts, AVSEEK_FLAG_BACKWARD);
+                        if (_pCodecContext != IntPtr.Zero)
+                            FFMPEG.avcodec_flush_buffers(_pCodecContext);
+                        _streamStartPts = long.MinValue;
+                        CurrentPositionSeconds = seekTarget;
+                        start = Environment.TickCount64;
+                    }
+                }
+
                 if (Environment.TickCount64 - start > timeoutMs)
                     throw new TimeoutException("Mất kết nối stream quá thời gian cho phép.");
 
                 int rd = FFMPEG.av_read_frame(fmtCtx, _pPacket);
                 if (rd < 0)
                 {
+                    if (_isLocalFile)
+                    {
+                        long basePts = _initialPts != long.MinValue ? _initialPts : 0;
+                        const int AVSEEK_FLAG_BACKWARD = 1;
+                        if (FFMPEG.av_seek_frame(fmtCtx, _streamIndex, basePts, AVSEEK_FLAG_BACKWARD) >= 0)
+                        {
+                            if (_pCodecContext != IntPtr.Zero)
+                                FFMPEG.avcodec_flush_buffers(_pCodecContext);
+                            _streamStartPts = long.MinValue;
+                            CurrentPositionSeconds = 0;
+                            start = Environment.TickCount64;
+                            Thread.Sleep(20);
+                            continue;
+                        }
+                    }
+
                     Thread.Sleep(5);
                     continue;
                 }
@@ -272,7 +334,16 @@ namespace Kztek.Cameras
                     if (pkt.stream_index != _streamIndex)
                         continue;
 
-                    ThrottleLocalPlayback(pkt.pts);
+                    long effectivePts = pkt.pts != FFMPEG.AV_NOPTS_VALUE && pkt.pts >= 0 ? pkt.pts : pkt.dts;
+                    if (_isLocalFile && effectivePts >= 0 && _timeBase.den > 0)
+                    {
+                        if (_initialPts == long.MinValue)
+                            _initialPts = effectivePts;
+                        if (effectivePts >= _initialPts)
+                            CurrentPositionSeconds = (effectivePts - _initialPts) * (double)_timeBase.num / _timeBase.den;
+                    }
+
+                    ThrottleLocalPlayback(effectivePts);
 
                     int send = FFMPEG.avcodec_send_packet(_pCodecContext, _pPacket);
                     if (send < 0 && send != AVERROR_EAGAIN)

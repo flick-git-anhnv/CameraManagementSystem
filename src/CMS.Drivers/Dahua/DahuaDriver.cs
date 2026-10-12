@@ -58,12 +58,10 @@ public class DahuaDriver : BaseCameraDriver
 
     public override async Task<bool> SendPtzCommandAsync(CameraDevice camera, PtzCommand command, double speed = 0.5, CancellationToken cancellationToken = default)
     {
-        if (!camera.HasPtz) return false;
-
         try
         {
             int ch = camera.Channel > 0 ? camera.Channel : 1;
-            int arg2 = (int)(speed * 8); // Dahua tốc độ 1-8
+            int arg2 = (int)Math.Max(1, Math.Min(8, speed * 8)); // Dahua tốc độ 1-8
 
             string dahuaCmd = command switch
             {
@@ -71,20 +69,25 @@ public class DahuaDriver : BaseCameraDriver
                 PtzCommand.Down => "Down",
                 PtzCommand.Left => "Left",
                 PtzCommand.Right => "Right",
+                PtzCommand.UpLeft => "LeftUp",
+                PtzCommand.UpRight => "RightUp",
+                PtzCommand.DownLeft => "LeftDown",
+                PtzCommand.DownRight => "RightDown",
                 PtzCommand.ZoomIn => "ZoomTele",
                 PtzCommand.ZoomOut => "ZoomWide",
+                PtzCommand.FocusNear => "FocusNear",
+                PtzCommand.FocusFar => "FocusFar",
                 _ => ""
             };
 
             string action = (command == PtzCommand.Stop) ? "stop" : "start";
             string url = $"http://{camera.IpAddress}:{camera.HttpPort}/cgi-bin/ptz.cgi?action={action}&channel={ch}&code={dahuaCmd}&arg1=0&arg2={arg2}&arg3=0";
 
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
-            if (!string.IsNullOrEmpty(camera.Username))
+            var handler = new HttpClientHandler
             {
-                var authBytes = Encoding.ASCII.GetBytes($"{camera.Username}:{camera.Password}");
-                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
-            }
+                Credentials = new System.Net.NetworkCredential(camera.Username, camera.Password)
+            };
+            using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(2) };
 
             var resp = await http.GetAsync(url, cancellationToken);
             return resp.IsSuccessStatusCode;
@@ -97,19 +100,17 @@ public class DahuaDriver : BaseCameraDriver
 
     public override async Task<bool> PresetAsync(CameraDevice camera, string action, int presetIndex, CancellationToken cancellationToken = default)
     {
-        if (!camera.HasPtz) return false;
         try
         {
             int ch = camera.Channel > 0 ? camera.Channel : 1;
             string dahuaCode = action.Equals("goto", StringComparison.OrdinalIgnoreCase) ? "GotoPreset" : "SetPreset";
             string url = $"http://{camera.IpAddress}:{camera.HttpPort}/cgi-bin/ptz.cgi?action=start&channel={ch}&code={dahuaCode}&arg1=0&arg2={presetIndex}&arg3=0";
 
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
-            if (!string.IsNullOrEmpty(camera.Username))
+            var handler = new HttpClientHandler
             {
-                var authBytes = Encoding.ASCII.GetBytes($"{camera.Username}:{camera.Password}");
-                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
-            }
+                Credentials = new System.Net.NetworkCredential(camera.Username, camera.Password)
+            };
+            using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(3) };
 
             var resp = await http.GetAsync(url, cancellationToken);
             return resp.IsSuccessStatusCode;

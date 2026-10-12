@@ -20,6 +20,162 @@ public class DriveDisplayInfo
     public string DisplayText => $"{Name} ({Label}) • Còn trống {FreeGb:F1} GB / {TotalGb:F1} GB (Đã dùng {UsedPercent:F0}%)";
 }
 
+public class RecordingModeOption
+{
+    public RecordingMode Mode { get; init; }
+    public string DisplayName { get; init; } = "";
+    public override string ToString() => DisplayName;
+}
+
+public partial class CameraRecordingPolicyItem : ObservableObject
+{
+    public CameraDevice Device { get; }
+
+    public string Id => Device.Id;
+    public string Name => Device.Name;
+    public string IpAddress => Device.IpAddress;
+
+    private RecordingModeOption _selectedRecordModeOption;
+    public RecordingModeOption SelectedRecordModeOption
+    {
+        get => _selectedRecordModeOption;
+        set
+        {
+            if (value != null && SetProperty(ref _selectedRecordModeOption, value))
+            {
+                Device.RecordMode = value.Mode;
+                OnPropertyChanged(nameof(RecordMode));
+                OnPropertyChanged(nameof(IsScheduleMode));
+            }
+        }
+    }
+
+    public RecordingMode RecordMode
+    {
+        get => Device.RecordMode;
+        set
+        {
+            if (Device.RecordMode != value)
+            {
+                Device.RecordMode = value;
+                var opt = StorageConfigViewModel.RecordModeOptionsList.FirstOrDefault(x => x.Mode == value)
+                          ?? StorageConfigViewModel.RecordModeOptionsList[0];
+                SetProperty(ref _selectedRecordModeOption, opt, nameof(SelectedRecordModeOption));
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsScheduleMode));
+            }
+        }
+    }
+
+    public bool IsScheduleMode => Device.RecordMode == RecordingMode.Schedule;
+
+    public bool RecordSubStream
+    {
+        get => Device.RecordSubStream;
+        set
+        {
+            if (Device.RecordSubStream != value)
+            {
+                Device.RecordSubStream = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string ScheduleStartTime
+    {
+        get => string.IsNullOrWhiteSpace(Device.ScheduleStartTime) ? "07:00" : Device.ScheduleStartTime;
+        set
+        {
+            if (Device.ScheduleStartTime != value && !string.IsNullOrWhiteSpace(value))
+            {
+                Device.ScheduleStartTime = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string ScheduleEndTime
+    {
+        get => string.IsNullOrWhiteSpace(Device.ScheduleEndTime) ? "19:00" : Device.ScheduleEndTime;
+        set
+        {
+            if (Device.ScheduleEndTime != value && !string.IsNullOrWhiteSpace(value))
+            {
+                Device.ScheduleEndTime = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    [ObservableProperty] private bool _isMon = true;
+    [ObservableProperty] private bool _isTue = true;
+    [ObservableProperty] private bool _isWed = true;
+    [ObservableProperty] private bool _isThu = true;
+    [ObservableProperty] private bool _isFri = true;
+    [ObservableProperty] private bool _isSat = true;
+    [ObservableProperty] private bool _isSun = true;
+    [ObservableProperty] private bool _isCurrentlyRecording;
+
+    public string RecordingStatusText => IsCurrentlyRecording ? "● Đang ghi" : "○ Đang dừng";
+    public string RecordingStatusColor => IsCurrentlyRecording ? "#10B981" : "#71717A";
+
+    partial void OnIsCurrentlyRecordingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(RecordingStatusText));
+        OnPropertyChanged(nameof(RecordingStatusColor));
+    }
+
+    partial void OnIsMonChanged(bool value) => SyncDaysToDevice();
+    partial void OnIsTueChanged(bool value) => SyncDaysToDevice();
+    partial void OnIsWedChanged(bool value) => SyncDaysToDevice();
+    partial void OnIsThuChanged(bool value) => SyncDaysToDevice();
+    partial void OnIsFriChanged(bool value) => SyncDaysToDevice();
+    partial void OnIsSatChanged(bool value) => SyncDaysToDevice();
+    partial void OnIsSunChanged(bool value) => SyncDaysToDevice();
+
+    public CameraRecordingPolicyItem(CameraDevice device, bool isCurrentlyRecording = false)
+    {
+        Device = device;
+        _isCurrentlyRecording = isCurrentlyRecording;
+        _selectedRecordModeOption = StorageConfigViewModel.RecordModeOptionsList.FirstOrDefault(x => x.Mode == device.RecordMode)
+                                    ?? StorageConfigViewModel.RecordModeOptionsList[1];
+
+        LoadDaysFromDevice();
+    }
+
+    private bool _isLoadingDays;
+
+    private void LoadDaysFromDevice()
+    {
+        _isLoadingDays = true;
+        var raw = string.IsNullOrWhiteSpace(Device.ScheduleDays) ? "1,2,3,4,5,6,0" : Device.ScheduleDays;
+        var set = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToHashSet();
+        IsMon = set.Contains("1");
+        IsTue = set.Contains("2");
+        IsWed = set.Contains("3");
+        IsThu = set.Contains("4");
+        IsFri = set.Contains("5");
+        IsSat = set.Contains("6");
+        IsSun = set.Contains("0");
+        _isLoadingDays = false;
+    }
+
+    private void SyncDaysToDevice()
+    {
+        if (_isLoadingDays) return;
+        var days = new List<string>();
+        if (IsMon) days.Add("1");
+        if (IsTue) days.Add("2");
+        if (IsWed) days.Add("3");
+        if (IsThu) days.Add("4");
+        if (IsFri) days.Add("5");
+        if (IsSat) days.Add("6");
+        if (IsSun) days.Add("0");
+        Device.ScheduleDays = string.Join(",", days);
+    }
+}
+
 public partial class StorageConfigViewModel : ObservableObject
 {
     private readonly SqliteStorageConfigRepository _storageRepo;
@@ -42,11 +198,37 @@ public partial class StorageConfigViewModel : ObservableObject
 
     // Cameras list with recording policy
     [ObservableProperty] private ObservableCollection<CameraDevice> _cameras = new();
+    [ObservableProperty] private ObservableCollection<CameraRecordingPolicyItem> _cameraPolicies = new();
+
+    public static IReadOnlyList<RecordingModeOption> RecordModeOptionsList { get; } = new List<RecordingModeOption>
+    {
+        new() { Mode = RecordingMode.None, DisplayName = "Không ghi hình" },
+        new() { Mode = RecordingMode.Continuous247, DisplayName = "Ghi liên tục 24/7" },
+        new() { Mode = RecordingMode.Schedule, DisplayName = "Ghi theo lịch trình" },
+        new() { Mode = RecordingMode.MotionTriggered, DisplayName = "Ghi khi có chuyển động" },
+        new() { Mode = RecordingMode.AiTriggered, DisplayName = "Ghi khi phát hiện sự kiện AI" }
+    };
+
+    public static IReadOnlyList<string> TimeSlotsList { get; } = BuildTimeSlots();
+
+    private static List<string> BuildTimeSlots()
+    {
+        var list = new List<string>();
+        for (int h = 0; h < 24; h++)
+        {
+            list.Add($"{h:D2}:00");
+            list.Add($"{h:D2}:30");
+        }
+        list.Add("23:59");
+        return list;
+    }
 
     public List<int> AvailableSegmentDurations { get; } = new() { 5, 10, 15, 30, 60 };
     public List<int> AvailableMinFreeSpaces { get; } = new() { 5, 10, 20, 50, 100 };
     public List<int> AvailableRetentionDays { get; } = new() { 7, 15, 30, 60, 90, 180, 365 };
     public IEnumerable<RecordingMode> AvailableRecordModes => Enum.GetValues<RecordingMode>();
+    public IReadOnlyList<RecordingModeOption> AvailableRecordModeOptions => RecordModeOptionsList;
+    public IReadOnlyList<string> AvailableTimeSlots => TimeSlotsList;
 
     public StorageConfigViewModel(
         SqliteStorageConfigRepository? storageRepo = null,
@@ -81,9 +263,12 @@ public partial class StorageConfigViewModel : ObservableObject
         // Load camera recording policy
         var list = await _cameraRepo.GetAllAsync();
         Cameras.Clear();
+        CameraPolicies.Clear();
         foreach (var cam in list)
         {
             Cameras.Add(cam);
+            bool isRec = _storageManager.IsRecording(cam.Id);
+            CameraPolicies.Add(new CameraRecordingPolicyItem(cam, isRec));
         }
     }
 
@@ -163,10 +348,19 @@ public partial class StorageConfigViewModel : ObservableObject
             // Lưu cài đặt ghi hình của từng camera
             foreach (var cam in Cameras)
             {
+                cam.SegmentMinutes = SegmentDurationMinutes;
                 await _cameraRepo.UpdateAsync(cam);
             }
 
-            StatusMessage = "✅ Đã lưu cấu hình lưu trữ và áp dụng vào Động cơ ghi hình!";
+            // Tự động kích hoạt / dừng dịch vụ ghi hình nền ngay lập tức theo chế độ đã chọn
+            var (activeCount, stoppedCount) = await _storageManager.ApplyCameraPoliciesAsync(Cameras);
+
+            foreach (var policy in CameraPolicies)
+            {
+                policy.IsCurrentlyRecording = _storageManager.IsRecording(policy.Id);
+            }
+
+            StatusMessage = $"✅ Đã lưu cấu hình lưu trữ & áp dụng chế độ ghi hình! (Đang ghi nền: {activeCount} camera • Đang dừng: {stoppedCount} camera)";
             RefreshDrives();
         }
         else

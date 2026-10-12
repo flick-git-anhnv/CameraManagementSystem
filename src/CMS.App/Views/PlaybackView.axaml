@@ -3,57 +3,162 @@
              xmlns:vm="using:CMS.App.ViewModels"
              xmlns:controls="using:CMS.App.Controls"
              xmlns:entities="using:CMS.Core.Entities"
+             xmlns:kzCam="using:Kztek.Cameras"
              xmlns:kz="clr-namespace:KztekComponentAvalonia.Controls;assembly=KztekComponentAvalonia"
              x:Class="CMS.App.Views.PlaybackView"
              x:DataType="vm:PlaybackViewModel">
 
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="310" MinWidth="240" MaxWidth="500"/>
+            <ColumnDefinition Width="320" MinWidth="260" MaxWidth="460"/>
             <ColumnDefinition Width="6"/>
             <ColumnDefinition Width="*" MinWidth="400"/>
         </Grid.ColumnDefinitions>
 
         <!-- ── 1. Left Sidebar: Camera List & Date Selector ───────────────── -->
-        <Border Grid.Column="0" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+        <Border Grid.Column="0"
+                Background="{DynamicResource ThemeCardBackgroundBrush}"
+                BorderBrush="{DynamicResource ThemeCardBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="14"
+                ClipToBounds="True">
             <Grid RowDefinitions="Auto, Auto, Auto, Auto, *">
-                <TextBlock Grid.Row="0" Text="TRA CỨU BẢN GHI LƯU TRỮ" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource ThemeBrandBrush}" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="0"
+                           Text="TRA CỨU BẢN GHI LƯU TRỮ"
+                           FontWeight="Bold"
+                           FontSize="12"
+                           Foreground="{DynamicResource ThemeBrandBrush}"
+                           Margin="0,0,0,12"/>
 
                 <!-- Camera Selector -->
-                <TextBlock Grid.Row="1" Text="Chọn Camera giám sát:" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" Margin="0,0,0,4"/>
-                <ComboBox Grid.Row="2" ItemsSource="{Binding Cameras}" SelectedItem="{Binding SelectedCamera}" HorizontalAlignment="Stretch" Margin="0,0,0,12">
+                <TextBlock Grid.Row="1"
+                           Text="Chọn Camera giám sát:"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource ThemeTextSecondaryBrush}"
+                           Margin="0,0,0,4"/>
+                <ComboBox Grid.Row="2"
+                          ItemsSource="{Binding Cameras}"
+                          SelectedItem="{Binding SelectedCamera}"
+                          HorizontalAlignment="Stretch"
+                          MinHeight="38"
+                          FontSize="14"
+                          Margin="0,0,0,12">
                     <ComboBox.ItemTemplate>
                         <DataTemplate x:DataType="entities:CameraDevice">
-                            <TextBlock Text="{Binding Name}"/>
+                            <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
 
                 <!-- Date Picker & Search Button -->
-                <StackPanel Grid.Row="3" Spacing="8" Margin="0,0,0,12">
-                    <TextBlock Text="Chọn Ngày ghi hình:" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
-                    <DatePicker SelectedDate="{Binding SelectedDate}" HorizontalAlignment="Stretch"/>
-                    <kz:KzButton Content="🔍 Tra cứu bản ghi" 
+                <StackPanel Grid.Row="3" Spacing="8" Margin="0,0,0,12" HorizontalAlignment="Stretch">
+                    <TextBlock Text="Chọn Ngày ghi hình:"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                    <DatePicker x:Name="RecordingDatePicker"
+                                SelectedDate="{Binding SelectedDate}"
+                                DayFormat="dd"
+                                MonthFormat="MM"
+                                YearFormat="yyyy"
+                                MinWidth="0"
+                                MinHeight="38"
+                                FontSize="14"
+                                HorizontalAlignment="Stretch"/>
+                    <kz:KzButton x:Name="BtnSearchRecordings"
+                                 Content="🔍 Tra cứu bản ghi"
                                  Command="{Binding SearchRecordingsCommand}"
-                                 Variant="Primary" KzSize="Md"
+                                 Variant="Primary"
+                                 KzSize="Md"
                                  HorizontalAlignment="Stretch"/>
                 </StackPanel>
 
                 <!-- Record Segments List -->
-                <Border Grid.Row="4" Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}" CornerRadius="6" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" Padding="10">
+                <Border Grid.Row="4"
+                        Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}"
+                        CornerRadius="6"
+                        BorderBrush="{DynamicResource ThemeCardBorderBrush}"
+                        BorderThickness="1"
+                        Padding="10"
+                        ClipToBounds="True">
                     <Grid RowDefinitions="Auto, *">
-                        <TextBlock Grid.Row="0" Text="DANH SÁCH ĐOẠN VIDEO" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}" Margin="0,0,0,8"/>
-                        <ListBox Grid.Row="1" ItemsSource="{Binding AvailableSegments}" SelectedItem="{Binding CurrentPlayingSegment}" Background="Transparent">
+                        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,8">
+                            <TextBlock Grid.Column="0"
+                                       Text="DANH SÁCH ĐOẠN VIDEO"
+                                       FontWeight="SemiBold"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource ThemeTextMutedBrush}"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding AvailableSegments.Count, StringFormat='{}{0} bản ghi'}"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource ThemeBrandBrush}"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <ListBox x:Name="SegmentListBox"
+                                 Grid.Row="1"
+                                 ItemsSource="{Binding AvailableSegments}"
+                                 SelectedItem="{Binding CurrentPlayingSegment}"
+                                 Background="Transparent"
+                                 Padding="0">
+                            <ListBox.Styles>
+                                <Style Selector="ListBoxItem">
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Margin" Value="0,3"/>
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                                <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                                <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                                <Style Selector="ListBoxItem:selected Border.segment-card">
+                                    <Setter Property="BorderBrush" Value="#F05922"/>
+                                    <Setter Property="BorderThickness" Value="2"/>
+                                </Style>
+                            </ListBox.Styles>
                             <ListBox.ItemTemplate>
                                 <DataTemplate x:DataType="entities:VideoSegment">
-                                    <Border Background="{DynamicResource ThemeItemContainerBackgroundBrush}" BorderBrush="{DynamicResource ThemeItemContainerBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,2">
-                                        <Grid ColumnDefinitions="Auto, *">
-                                            <Border Grid.Column="0" Background="#10B981" CornerRadius="3" Width="4" Margin="0,0,8,0"/>
-                                            <StackPanel Grid.Column="1">
-                                                <TextBlock Text="{Binding StartTime, StringFormat='{}{0:HH:mm:ss} - '}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}"/>
-                                                <TextBlock Text="{Binding EndTime, StringFormat='{}{0:HH:mm:ss}'}" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
-                                                <TextBlock Text="{Binding DurationSeconds, StringFormat='Thời lượng: {0:F0} giây'}" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}"/>
+                                    <Border Classes="segment-card"
+                                            Background="{DynamicResource ThemeItemContainerBackgroundBrush}"
+                                            BorderBrush="{DynamicResource ThemeItemContainerBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Padding="10,8"
+                                            Cursor="Hand">
+                                        <Grid ColumnDefinitions="Auto, *, Auto">
+                                            <Border Grid.Column="0"
+                                                    Background="#10B981"
+                                                    CornerRadius="2"
+                                                    Width="4"
+                                                    Margin="0,1,10,1"/>
+                                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding TimeRangeFormatted}"
+                                                           FontWeight="Bold"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource ThemeTextPrimaryBrush}"/>
+                                                <TextBlock Text="{Binding DurationAndSizeFormatted}"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource ThemeTextMutedBrush}"/>
                                             </StackPanel>
+                                            <Border Grid.Column="2"
+                                                    Background="{DynamicResource ThemeBadgeBrandBackgroundBrush}"
+                                                    CornerRadius="4"
+                                                    Padding="6,3"
+                                                    VerticalAlignment="Center"
+                                                    Margin="6,0,0,0">
+                                                <TextBlock Text="▶"
+                                                           FontSize="10"
+                                                           FontWeight="Bold"
+                                                           Foreground="{DynamicResource ThemeBrandBrush}"/>
+                                            </Border>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -70,63 +175,181 @@
         <!-- ── 2. Right: Video Surface & Timeline ────────────────────────── -->
         <Grid Grid.Column="2" RowDefinitions="*, Auto, Auto">
             <!-- Video Display Area -->
-            <Border Grid.Row="0" Background="{DynamicResource ThemeVideoAreaBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,8">
+            <Border Grid.Row="0"
+                    Background="{DynamicResource ThemeVideoAreaBackgroundBrush}"
+                    BorderBrush="{DynamicResource ThemeCardBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Margin="0,0,0,8"
+                    ClipToBounds="True">
                 <Grid>
-                    <!-- Screen Surface Placeholder / Player -->
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                    <!-- 1. Real FFmpeg Video Player Surface -->
+                    <kzCam:AnvPlayer x:Name="PlaybackPlayer"
+                                     HorizontalAlignment="Stretch"
+                                     VerticalAlignment="Stretch"
+                                     IsVisible="{Binding HasActiveVideo}"/>
+
+                    <!-- 2. Screen Surface Placeholder when no video is playing -->
+                    <StackPanel x:Name="PlaceholderPanel"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Spacing="8"
+                                IsVisible="{Binding !HasActiveVideo}">
                         <TextBlock Text="🎬" FontSize="56" HorizontalAlignment="Center" Opacity="0.5"/>
-                        <TextBlock Text="Đầu phát Video đồng bộ sẵn sàng" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding PlaybackStatus}" Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="12" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Đầu phát Video đồng bộ sẵn sàng"
+                                   FontSize="17"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource ThemeTextPrimaryBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding PlaybackStatus}"
+                                   Foreground="{DynamicResource ThemeTextSecondaryBrush}"
+                                   FontSize="12"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center"
+                                   MaxWidth="520"
+                                   TextWrapping="Wrap"/>
                     </StackPanel>
 
-                    <!-- Top OSD Information -->
-                    <Border VerticalAlignment="Top" HorizontalAlignment="Left" Background="#A013111C" Padding="12,6" Margin="10" CornerRadius="6">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="{Binding SelectedCamera.Name, FallbackValue='Chưa chọn Camera'}" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                            <TextBlock Text="•" Foreground="#8E88B0"/>
-                            <TextBlock Text="{Binding SelectedDate, StringFormat='{}{0:dd/MM/yyyy}'}" Foreground="#F8FAFC" FontSize="13"/>
+                    <!-- 3. Top OSD Information -->
+                    <Border VerticalAlignment="Top"
+                            HorizontalAlignment="Left"
+                            Background="#B813111C"
+                            Padding="12,6"
+                            Margin="10"
+                            CornerRadius="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Border Width="8" Height="8" CornerRadius="4"
+                                    Background="#10B981"
+                                    IsVisible="{Binding IsPlaying}"
+                                    VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding SelectedCamera.Name, FallbackValue='Chưa chọn Camera'}"
+                                       FontWeight="Bold"
+                                       Foreground="White"
+                                       FontSize="13"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="•" Foreground="#8E88B0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding SelectedDate, StringFormat='{}{0:dd/MM/yyyy}'}"
+                                       Foreground="#F8FAFC"
+                                       FontSize="13"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="•" Foreground="#8E88B0" VerticalAlignment="Center" IsVisible="{Binding HasActiveVideo}"/>
+                            <TextBlock Text="{Binding CurrentTimeDisplay}"
+                                       Foreground="#F05922"
+                                       FontWeight="Bold"
+                                       FontSize="13"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding HasActiveVideo}"/>
                         </StackPanel>
+                    </Border>
+
+                    <!-- 4. Bottom Status Overlay when Video is Active -->
+                    <Border VerticalAlignment="Bottom"
+                            HorizontalAlignment="Left"
+                            Background="#B813111C"
+                            Padding="10,4"
+                            Margin="10"
+                            CornerRadius="6"
+                            IsVisible="{Binding HasActiveVideo}">
+                        <TextBlock Text="{Binding PlaybackStatus}"
+                                   Foreground="#E2E8F0"
+                                   FontSize="11"/>
                     </Border>
                 </Grid>
             </Border>
 
             <!-- Playback Control Toolbar -->
-            <Border Grid.Row="1" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,8">
+            <Border Grid.Row="1"
+                    Background="{DynamicResource ThemeCardBackgroundBrush}"
+                    BorderBrush="{DynamicResource ThemeCardBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="12,8"
+                    Margin="0,0,0,8">
                 <Grid ColumnDefinitions="Auto, *, Auto">
                     <!-- Playback Controls -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
-                        <kz:KzButton Content="⏮️ -10s" Variant="Secondary" KzSize="Sm" ToolTip.Tip="Lùi lại 10 giây"/>
-                        <kz:KzButton Content="◀️ Chậm" Variant="Secondary" KzSize="Sm" ToolTip.Tip="Phát chậm"/>
-                        <kz:KzButton Content="▶️ Phát / Dừng" 
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <kz:KzButton x:Name="BtnStepBackward"
+                                     Content="⏮️ -10s"
+                                     Command="{Binding StepBackwardCommand}"
+                                     Variant="Secondary"
+                                     KzSize="Sm"
+                                     ToolTip.Tip="Lùi lại 10 giây"/>
+                        <kz:KzButton x:Name="BtnSlowDown"
+                                     Content="◀️ Chậm"
+                                     Command="{Binding SlowDownCommand}"
+                                     Variant="Secondary"
+                                     KzSize="Sm"
+                                     ToolTip.Tip="Giảm tốc độ phát"/>
+                        <kz:KzButton x:Name="BtnPlayPause"
+                                     Content="{Binding PlayPauseButtonText}"
                                      Command="{Binding TogglePlayPauseCommand}"
-                                     Variant="Primary" KzSize="Sm" ToolTip.Tip="Phát hoặc tạm dừng video"/>
-                        <kz:KzButton Content="Nhanh ▶️" Variant="Secondary" KzSize="Sm" ToolTip.Tip="Tua nhanh"/>
-                        <kz:KzButton Content="+10s ⏭️" Variant="Secondary" KzSize="Sm" ToolTip.Tip="Tiến tới 10 giây"/>
+                                     Variant="Primary"
+                                     KzSize="Sm"
+                                     MinWidth="115"
+                                     ToolTip.Tip="Phát hoặc tạm dừng video"/>
+                        <kz:KzButton x:Name="BtnSpeedUp"
+                                     Content="Nhanh ▶️"
+                                     Command="{Binding SpeedUpCommand}"
+                                     Variant="Secondary"
+                                     KzSize="Sm"
+                                     ToolTip.Tip="Tăng tốc độ phát"/>
+                        <kz:KzButton x:Name="BtnStepForward"
+                                     Content="+10s ⏭️"
+                                     Command="{Binding StepForwardCommand}"
+                                     Variant="Secondary"
+                                     KzSize="Sm"
+                                     ToolTip.Tip="Tiến tới 10 giây"/>
                     </StackPanel>
 
                     <!-- Speed & Format Badges -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Margin="8,0">
+                        <kz:KzBadge Variant="Neutral" BadgeType="Tag" Content="{Binding CurrentTimeDisplay, StringFormat='⏱ {0}'}"/>
                         <kz:KzBadge Variant="Info" BadgeType="Tag" Content="{Binding SpeedLabel, StringFormat='Tốc độ: {0}'}"/>
                         <kz:KzBadge Variant="Accent" BadgeType="Tag" Content="MP4 Không giải mã lại (Zero-Transcode)"/>
                     </StackPanel>
 
                     <!-- Export Tools -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
-                        <kz:KzButton Content="📸 Chụp ảnh" Variant="Secondary" KzSize="Sm" ToolTip.Tip="Chụp khung hình xem lại"/>
-                        <kz:KzButton Content="✂️ Xuất video" Variant="Primary" KzSize="Sm" ToolTip.Tip="Xuất đoạn video lưu về máy"/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <kz:KzButton x:Name="BtnSnapshot"
+                                     Content="📸 Chụp ảnh"
+                                     Command="{Binding TakeSnapshotCommand}"
+                                     Variant="Secondary"
+                                     KzSize="Sm"
+                                     ToolTip.Tip="Chụp khung hình xem lại"/>
+                        <kz:KzButton x:Name="BtnExportVideo"
+                                     Content="✂️ Xuất video"
+                                     Command="{Binding ExportSegmentCommand}"
+                                     Variant="Primary"
+                                     KzSize="Sm"
+                                     ToolTip.Tip="Xuất đoạn video lưu về máy"/>
                     </StackPanel>
                 </Grid>
             </Border>
 
             <!-- 24-Hour Timeline Control -->
-            <Border Grid.Row="2" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
+            <Border Grid.Row="2"
+                    Background="{DynamicResource ThemeCardBackgroundBrush}"
+                    BorderBrush="{DynamicResource ThemeCardBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="10">
                 <Grid RowDefinitions="Auto, Auto">
                     <!-- Timeline Header & Legend -->
                     <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="4,0,4,8">
-                        <TextBlock Grid.Column="0" Text="DÒNG THỜI GIAN ĐỒNG BỘ 24 GIỜ" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}" VerticalAlignment="Center"/>
-                        
+                        <TextBlock Grid.Column="0"
+                                   Text="DÒNG THỜI GIAN ĐỒNG BỘ 24 GIỜ"
+                                   FontWeight="Bold"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource ThemeTextMutedBrush}"
+                                   VerticalAlignment="Center"/>
+
                         <!-- Legend -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                 <Border Background="#10B981" Width="10" Height="10" CornerRadius="2"/>
                                 <TextBlock Text="Ghi liên tục (24/7)" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>

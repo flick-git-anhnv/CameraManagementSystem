@@ -1,22 +1,22 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="CMS.App.Controls.TimelineControl"
-             Height="70">
+             Height="72">
 
-    <Border Background="{DynamicResource ThemeTimelineBackgroundBrush}" BorderBrush="{DynamicResource ThemeTimelineBorderBrush}" BorderThickness="0,1,0,0">
-        <Grid>
+    <Border Background="{DynamicResource ThemeTimelineBackgroundBrush}" BorderBrush="{DynamicResource ThemeTimelineBorderBrush}" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
+        <Grid ClipToBounds="True">
             <!-- Canvas vẽ các dải màu video đã ghi và vạch giờ -->
-            <Canvas x:Name="TimelineCanvas" Background="{DynamicResource ThemeTimelineBackgroundBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            <Canvas x:Name="TimelineCanvas" Background="{DynamicResource ThemeTimelineBackgroundBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Cursor="Hand"/>
 
             <!-- Con trỏ thời gian (Playhead Cursor) -->
             <Canvas x:Name="PlayheadCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsHitTestVisible="False">
-                <Line x:Name="PlayheadLine" StartPoint="0,0" EndPoint="0,70" Stroke="#EF4444" StrokeThickness="2"/>
-                <Polygon x:Name="PlayheadHead" Points="0,0 6,10 -6,10" Fill="#EF4444"/>
+                <Line x:Name="PlayheadLine" StartPoint="0,0" EndPoint="0,72" Stroke="#EF4444" StrokeThickness="2"/>
+                <Polygon x:Name="PlayheadHead" Points="0,10 6,0 -6,0" Fill="#EF4444"/>
             </Canvas>
 
             <!-- Nhãn thời gian hiện tại góc trên -->
-            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#80000000" Padding="8,2" Margin="6" CornerRadius="3">
-                <TextBlock x:Name="TxtCurrentTime" Text="00:00:00" Foreground="#F4F4F5" FontSize="11" FontWeight="Bold"/>
+            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#B013111C" Padding="8,2" Margin="6,4" CornerRadius="4" IsHitTestVisible="False">
+                <TextBlock x:Name="TxtCurrentTime" Text="12:00:00" Foreground="#F4F4F5" FontSize="11" FontWeight="Bold"/>
             </Border>
         </Grid>
     </Border>

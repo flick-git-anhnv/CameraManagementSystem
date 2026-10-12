@@ -298,4 +298,38 @@ public class SqliteRepositoryTests : IDisposable
         Assert.Equal(AlarmEventType.Intrusion, recent[0].EventType);
         Assert.Equal(AlarmLevel.Critical, recent[0].Level);
     }
+
+    [Fact]
+    public async Task CameraRepo_ScheduleFields_RoundtripAndScheduleCheck()
+    {
+        var repo = new SqliteCameraRepository(_tempDbPath);
+        var cam = new CameraDevice
+        {
+            Id = "cam-sched-01",
+            Name = "Scheduled Camera",
+            IpAddress = "192.168.21.182",
+            RecordMode = RecordingMode.Schedule,
+            ScheduleStartTime = "08:00",
+            ScheduleEndTime = "17:30",
+            ScheduleDays = "1,2,3,4,5" // Thứ 2..Thứ 6
+        };
+
+        await repo.AddAsync(cam);
+        var loaded = await repo.GetByIdAsync("cam-sched-01");
+
+        Assert.NotNull(loaded);
+        Assert.Equal(RecordingMode.Schedule, loaded.RecordMode);
+        Assert.Equal("08:00", loaded.ScheduleStartTime);
+        Assert.Equal("17:30", loaded.ScheduleEndTime);
+        Assert.Equal("1,2,3,4,5", loaded.ScheduleDays);
+
+        // Kiểm tra hàm đánh giá lịch trình trong giờ hành chính Thứ 2 (2026-10-12 là Thứ 2)
+        var mondayInside = new DateTime(2026, 10, 12, 10, 15, 0);
+        var mondayOutside = new DateTime(2026, 10, 12, 20, 0, 0);
+        var sundayInsideTime = new DateTime(2026, 10, 11, 10, 15, 0);
+
+        Assert.True(CMS.MediaServer.Storage.StorageManager.IsWithinSchedule(loaded, mondayInside));
+        Assert.False(CMS.MediaServer.Storage.StorageManager.IsWithinSchedule(loaded, mondayOutside));
+        Assert.False(CMS.MediaServer.Storage.StorageManager.IsWithinSchedule(loaded, sundayInsideTime));
+    }
 }

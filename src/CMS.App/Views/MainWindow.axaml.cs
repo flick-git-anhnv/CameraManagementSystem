@@ -16,6 +16,14 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        LivePtzControl.PtzSupportChanged += (_, hasPtz) =>
+        {
+            if (PtzSidebarBorder != null)
+            {
+                PtzSidebarBorder.IsVisible = hasPtz;
+            }
+        };
+
         CameraListBox.DoubleTapped += OnCameraDoubleTapped;
         CameraListBox.SelectionChanged += (_, _) =>
         {
@@ -27,12 +35,20 @@ public partial class MainWindow : Window
         LiveGrid.BtnAutoFill.Click += (_, _) => OnAutoFillClick();
 
         LiveGrid.CameraStateChanged += (_, _) => SyncCameraStates();
+        LiveGrid.SelectedCameraChanged += (_, cam) =>
+        {
+            LivePtzControl.TargetCamera = cam;
+        };
 
         this.DataContextChanged += (_, _) =>
         {
             if (DataContext is MainWindowViewModel vm)
             {
-                vm.ConfiguredCameras.CollectionChanged += (_, _) => SyncCameraStates();
+                vm.ConfiguredCameras.CollectionChanged += (_, _) =>
+                {
+                    LiveGrid.SyncCameraMetadata(vm.ConfiguredCameras.Select(c => c.Device));
+                    SyncCameraStates();
+                };
                 SyncCameraStates();
             }
         };
@@ -44,6 +60,19 @@ public partial class MainWindow : Window
         };
         _statusSyncTimer.Tick += (_, _) => SyncCameraStates();
         _statusSyncTimer.Start();
+
+        this.Closed += (_, _) =>
+        {
+            _statusSyncTimer?.Stop();
+            try
+            {
+                LiveGrid.StopAll();
+                Controls.VideoCellView.GlobalStorageManager.Dispose();
+            }
+            catch
+            {
+            }
+        };
     }
 
     public void SyncCameraStates()
@@ -53,6 +82,30 @@ public partial class MainWindow : Window
             var viewing = LiveGrid.GetViewingCameraIds();
             var recording = LiveGrid.GetRecordingCameraIds();
             vm.UpdateCameraStates(viewing, recording);
+
+            if (LivePtzControl.TargetCamera != null)
+            {
+                var latest = vm.ConfiguredCameras.FirstOrDefault(c => c.Id == LivePtzControl.TargetCamera.Id);
+                if (latest != null)
+                {
+                    if (LivePtzControl.TargetCamera.HasPtz != latest.Device.HasPtz ||
+                        LivePtzControl.TargetCamera.Name != latest.Device.Name)
+                    {
+                        LivePtzControl.TargetCamera.HasPtz = latest.Device.HasPtz;
+                        LivePtzControl.TargetCamera.Name = latest.Device.Name;
+                        LivePtzControl.UpdatePtzState();
+                    }
+                }
+                else
+                {
+                    LivePtzControl.TargetCamera = LiveGrid.SelectedCamera;
+                }
+            }
+
+            if (PtzSidebarBorder != null)
+            {
+                PtzSidebarBorder.IsVisible = LivePtzControl.IsPtzAvailable;
+            }
         }
     }
 

@@ -59,12 +59,9 @@ public class HikvisionDriver : BaseCameraDriver
 
     public override async Task<bool> SendPtzCommandAsync(CameraDevice camera, PtzCommand command, double speed = 0.5, CancellationToken cancellationToken = default)
     {
-        if (!camera.HasPtz) return false;
-
         try
         {
             // Hikvision ISAPI PTZ continuous control
-            // URL: /ISAPI/PTZCtrl/channels/{ch}/continuous
             int ch = camera.Channel > 0 ? camera.Channel : 1;
             string url = $"http://{camera.IpAddress}:{camera.HttpPort}/ISAPI/PTZCtrl/channels/{ch}/continuous";
 
@@ -93,12 +90,11 @@ public class HikvisionDriver : BaseCameraDriver
     <zoom>{zoom}</zoom>
 </PTZData>";
 
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
-            if (!string.IsNullOrEmpty(camera.Username))
+            var handler = new HttpClientHandler
             {
-                var authBytes = Encoding.ASCII.GetBytes($"{camera.Username}:{camera.Password}");
-                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
-            }
+                Credentials = new System.Net.NetworkCredential(camera.Username, camera.Password)
+            };
+            using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(2) };
 
             var content = new StringContent(xml, Encoding.UTF8, "application/xml");
             var resp = await http.PutAsync(url, content, cancellationToken);
@@ -112,16 +108,14 @@ public class HikvisionDriver : BaseCameraDriver
 
     public override async Task<bool> PresetAsync(CameraDevice camera, string action, int presetIndex, CancellationToken cancellationToken = default)
     {
-        if (!camera.HasPtz) return false;
         try
         {
             int ch = camera.Channel > 0 ? camera.Channel : 1;
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
-            if (!string.IsNullOrEmpty(camera.Username))
+            var handler = new HttpClientHandler
             {
-                var authBytes = Encoding.ASCII.GetBytes($"{camera.Username}:{camera.Password}");
-                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
-            }
+                Credentials = new System.Net.NetworkCredential(camera.Username, camera.Password)
+            };
+            using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(3) };
 
             if (action.Equals("goto", StringComparison.OrdinalIgnoreCase))
             {

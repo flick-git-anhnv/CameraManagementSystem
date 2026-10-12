@@ -7,100 +7,123 @@
     <Border Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="14">
         <StackPanel Spacing="12">
             <!-- Header -->
-            <Grid ColumnDefinitions="*, Auto">
-                <TextBlock Grid.Column="0" Text="ĐIỀU KHIỂN QUAY QUÉT (PTZ)" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource ThemeBrandBrush}"/>
-                <TextBlock x:Name="TxtTargetCamera" Grid.Column="1" Text="Chưa chọn camera" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
-            </Grid>
-
-            <!-- Virtual 8-Way D-Pad -->
-            <Border Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" HorizontalAlignment="Center">
-                <Grid RowDefinitions="38, 38, 38" ColumnDefinitions="38, 38, 38">
-                    <!-- Up-Left -->
-                    <Button x:Name="BtnPtzUpLeft" Content="↖" Grid.Row="0" Grid.Column="0" Margin="2" Padding="0"
-                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ThemeTextPrimaryBrush}" CornerRadius="4"/>
-                    <!-- Up -->
-                    <Button x:Name="BtnPtzUp" Content="▲" Grid.Row="0" Grid.Column="1" Margin="2" Padding="0"
-                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Background="#F05922" Foreground="White" CornerRadius="4"/>
-                    <!-- Up-Right -->
-                    <Button x:Name="BtnPtzUpRight" Content="↗" Grid.Row="0" Grid.Column="2" Margin="2" Padding="0"
-                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ThemeTextPrimaryBrush}" CornerRadius="4"/>
-
-                    <!-- Left -->
-                    <Button x:Name="BtnPtzLeft" Content="◀" Grid.Row="1" Grid.Column="0" Margin="2" Padding="0"
-                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Background="#F05922" Foreground="White" CornerRadius="4"/>
-                    <!-- Center Stop -->
-                    <Button x:Name="BtnPtzStop" Content="■" Grid.Row="1" Grid.Column="1" Margin="2" Padding="0"
-                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Background="#DC2626" Foreground="White" CornerRadius="4" ToolTip.Tip="Dừng chuyển động PTZ"/>
-                    <!-- Right -->
-                    <Button x:Name="BtnPtzRight" Content="▶" Grid.Row="1" Grid.Column="2" Margin="2" Padding="0"
-                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Background="#F05922" Foreground="White" CornerRadius="4"/>
-
-                    <!-- Down-Left -->
-                    <Button x:Name="BtnPtzDownLeft" Content="↙" Grid.Row="2" Grid.Column="0" Margin="2" Padding="0"
-                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ThemeTextPrimaryBrush}" CornerRadius="4"/>
-                    <!-- Down -->
-                    <Button x:Name="BtnPtzDown" Content="▼" Grid.Row="2" Grid.Column="1" Margin="2" Padding="0"
-                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Background="#F05922" Foreground="White" CornerRadius="4"/>
-                    <!-- Down-Right -->
-                    <Button x:Name="BtnPtzDownRight" Content="↘" Grid.Row="2" Grid.Column="2" Margin="2" Padding="0"
-                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ThemeTextPrimaryBrush}" CornerRadius="4"/>
-                </Grid>
-            </Border>
-
-            <!-- Zoom & Focus Controls -->
-            <Grid ColumnDefinitions="*, *" Margin="0,2,0,0">
-                <!-- Zoom In/Out -->
-                <StackPanel Grid.Column="0" Margin="0,0,6,0" Spacing="4">
-                    <TextBlock Text="Thu / Phóng (Zoom)" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" HorizontalAlignment="Center"/>
-                    <Grid ColumnDefinitions="*, *">
-                        <Button x:Name="BtnZoomOut" Content="➖" Grid.Column="0" Margin="0,0,2,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                                Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ThemeTextPrimaryBrush}" CornerRadius="4" Height="28"/>
-                        <Button x:Name="BtnZoomIn" Content="➕" Grid.Column="1" Margin="2,0,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                                Background="#F05922" Foreground="White" CornerRadius="4" Height="28"/>
-                    </Grid>
-                </StackPanel>
-
-                <!-- Focus -->
-                <StackPanel Grid.Column="1" Margin="6,0,0,0" Spacing="4">
-                    <TextBlock Text="Tiêu cự (Focus)" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" HorizontalAlignment="Center"/>
-                    <Grid ColumnDefinitions="*, *">
-                        <Button x:Name="BtnFocusNear" Content="Gần" Grid.Column="0" Margin="0,0,2,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="11"
-                                Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ThemeTextPrimaryBrush}" CornerRadius="4" Height="28"/>
-                        <Button x:Name="BtnFocusFar" Content="Xa" Grid.Column="1" Margin="2,0,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="11"
-                                Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ThemeTextPrimaryBrush}" CornerRadius="4" Height="28"/>
-                    </Grid>
-                </StackPanel>
-            </Grid>
-
-            <!-- Speed Slider -->
-            <StackPanel Spacing="2">
+            <StackPanel Spacing="3">
                 <Grid ColumnDefinitions="*, Auto">
-                    <TextBlock Text="Tốc độ di chuyển" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
-                    <TextBlock x:Name="TxtSpeedVal" Grid.Column="1" Text="0.5" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource ThemeBrandBrush}"/>
+                    <TextBlock Grid.Column="0" Text="ĐIỀU KHIỂN QUAY QUÉT (PTZ)" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource ThemeBrandBrush}" VerticalAlignment="Center"/>
+                    <kz:KzBadge x:Name="BadgePtzStatus" Grid.Column="1" Variant="Success" BadgeType="Tag" Content="Có PTZ" VerticalAlignment="Center"/>
                 </Grid>
-                <Slider x:Name="SliderSpeed" Minimum="0.1" Maximum="1.0" Value="0.5" SmallChange="0.1"/>
+                <TextBlock x:Name="TxtTargetCamera" Text="Chưa chọn camera" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
             </StackPanel>
 
-            <!-- Presets Section -->
-            <Border Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10">
-                <StackPanel Spacing="6">
-                    <TextBlock Text="ĐIỂM ĐẶT TRƯỚC (PRESET)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}"/>
-                    <Grid ColumnDefinitions="*, Auto, Auto">
-                        <NumericUpDown x:Name="NumPreset" Value="1" Minimum="1" Maximum="255" Margin="0,0,6,0" Height="30" FormatString="0" VerticalContentAlignment="Center"/>
-                        <kz:KzButton x:Name="BtnCallPreset" Content="Gọi" Variant="Primary" KzSize="Sm" Margin="0,0,4,0"/>
-                        <kz:KzButton x:Name="BtnSetPreset" Content="Lưu" Variant="Secondary" KzSize="Sm"/>
-                    </Grid>
-                </StackPanel>
+            <!-- Banner when camera does not support PTZ -->
+            <Border x:Name="PtzUnavailableBanner"
+                    IsVisible="False"
+                    Background="{DynamicResource ThemeItemContainerBackgroundBrush}"
+                    BorderBrush="{DynamicResource ThemeItemContainerBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="10,8">
+                <TextBlock x:Name="TxtPtzUnavailableReason"
+                           Text="📷 Camera cố định — Không hỗ trợ điều khiển PTZ"
+                           FontSize="11"
+                           Foreground="{DynamicResource ThemeTextMutedBrush}"
+                           TextWrapping="Wrap"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"/>
             </Border>
+
+            <!-- Interactive PTZ Controls Container (Disabled when camera has no PTZ) -->
+            <StackPanel x:Name="PtzInteractivePanel" Spacing="12">
+                <!-- Virtual 8-Way D-Pad -->
+                <Border Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" HorizontalAlignment="Center">
+                    <Grid RowDefinitions="38, 38, 38" ColumnDefinitions="38, 38, 38">
+                        <!-- Up-Left -->
+                        <Button x:Name="BtnPtzUpLeft" Content="↖" Grid.Row="0" Grid.Column="0" Margin="2" Padding="0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ThemeTextPrimaryBrush}" CornerRadius="4"/>
+                        <!-- Up -->
+                        <Button x:Name="BtnPtzUp" Content="▲" Grid.Row="0" Grid.Column="1" Margin="2" Padding="0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="#F05922" Foreground="White" CornerRadius="4"/>
+                        <!-- Up-Right -->
+                        <Button x:Name="BtnPtzUpRight" Content="↗" Grid.Row="0" Grid.Column="2" Margin="2" Padding="0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ThemeTextPrimaryBrush}" CornerRadius="4"/>
+
+                        <!-- Left -->
+                        <Button x:Name="BtnPtzLeft" Content="◀" Grid.Row="1" Grid.Column="0" Margin="2" Padding="0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="#F05922" Foreground="White" CornerRadius="4"/>
+                        <!-- Center Stop -->
+                        <Button x:Name="BtnPtzStop" Content="■" Grid.Row="1" Grid.Column="1" Margin="2" Padding="0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="#DC2626" Foreground="White" CornerRadius="4" ToolTip.Tip="Dừng chuyển động PTZ"/>
+                        <!-- Right -->
+                        <Button x:Name="BtnPtzRight" Content="▶" Grid.Row="1" Grid.Column="2" Margin="2" Padding="0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="#F05922" Foreground="White" CornerRadius="4"/>
+
+                        <!-- Down-Left -->
+                        <Button x:Name="BtnPtzDownLeft" Content="↙" Grid.Row="2" Grid.Column="0" Margin="2" Padding="0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ThemeTextPrimaryBrush}" CornerRadius="4"/>
+                        <!-- Down -->
+                        <Button x:Name="BtnPtzDown" Content="▼" Grid.Row="2" Grid.Column="1" Margin="2" Padding="0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="#F05922" Foreground="White" CornerRadius="4"/>
+                        <!-- Down-Right -->
+                        <Button x:Name="BtnPtzDownRight" Content="↘" Grid.Row="2" Grid.Column="2" Margin="2" Padding="0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ThemeTextPrimaryBrush}" CornerRadius="4"/>
+                    </Grid>
+                </Border>
+
+                <!-- Zoom & Focus Controls -->
+                <Grid ColumnDefinitions="*, *" Margin="0,2,0,0">
+                    <!-- Zoom In/Out -->
+                    <StackPanel Grid.Column="0" Margin="0,0,6,0" Spacing="4">
+                        <TextBlock Text="Thu / Phóng (Zoom)" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" HorizontalAlignment="Center"/>
+                        <Grid ColumnDefinitions="*, *">
+                            <Button x:Name="BtnZoomOut" Content="➖" Grid.Column="0" Margin="0,0,2,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                    Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ThemeTextPrimaryBrush}" CornerRadius="4" Height="28"/>
+                            <Button x:Name="BtnZoomIn" Content="➕" Grid.Column="1" Margin="2,0,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                    Background="#F05922" Foreground="White" CornerRadius="4" Height="28"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Focus -->
+                    <StackPanel Grid.Column="1" Margin="6,0,0,0" Spacing="4">
+                        <TextBlock Text="Tiêu cự (Focus)" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" HorizontalAlignment="Center"/>
+                        <Grid ColumnDefinitions="*, *">
+                            <Button x:Name="BtnFocusNear" Content="Gần" Grid.Column="0" Margin="0,0,2,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="11"
+                                    Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ThemeTextPrimaryBrush}" CornerRadius="4" Height="28"/>
+                            <Button x:Name="BtnFocusFar" Content="Xa" Grid.Column="1" Margin="2,0,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="11"
+                                    Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ThemeTextPrimaryBrush}" CornerRadius="4" Height="28"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Speed Slider -->
+                <StackPanel Spacing="2">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <TextBlock Text="Tốc độ di chuyển" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                        <TextBlock x:Name="TxtSpeedVal" Grid.Column="1" Text="0.5" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource ThemeBrandBrush}"/>
+                    </Grid>
+                    <Slider x:Name="SliderSpeed" Minimum="0.1" Maximum="1.0" Value="0.5" SmallChange="0.1"/>
+                </StackPanel>
+
+                <!-- Presets Section -->
+                <Border Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="ĐIỂM ĐẶT TRƯỚC (PRESET)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}"/>
+                        <Grid ColumnDefinitions="*, Auto, Auto">
+                            <NumericUpDown x:Name="NumPreset" Value="1" Minimum="1" Maximum="255" Margin="0,0,6,0" Height="30" FormatString="0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                            <kz:KzButton x:Name="BtnCallPreset" Content="Gọi" Variant="Primary" KzSize="Sm" Margin="0,0,4,0"/>
+                            <kz:KzButton x:Name="BtnSetPreset" Content="Lưu" Variant="Secondary" KzSize="Sm"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
         </StackPanel>
     </Border>
 </UserControl>

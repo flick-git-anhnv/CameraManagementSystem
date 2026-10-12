@@ -25,6 +25,8 @@ public partial class LiveViewGrid : UserControl
     public IReadOnlyList<VideoCellView> Cells => _cells;
 
     public event EventHandler? CameraStateChanged;
+    public event EventHandler<CameraDevice?>? SelectedCameraChanged;
+    public CameraDevice? SelectedCamera => (_selectedCellIndex >= 0 && _selectedCellIndex < _cells.Count) ? _cells[_selectedCellIndex].CurrentCamera : null;
 
     public LiveViewGrid()
     {
@@ -113,10 +115,24 @@ public partial class LiveViewGrid : UserControl
             int cellIdx = _cells.Count;
 
             cell.DoubleClicked += (_, _) => OnCellDoubleClicked(cell);
-            cell.PointerPressed += (_, _) => SelectCell(cellIdx);
-            cell.PlaybackStateChanged += (_, _) => CameraStateChanged?.Invoke(this, EventArgs.Empty);
+            cell.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, (_, _) => SelectCell(cellIdx), Avalonia.Interactivity.RoutingStrategies.Tunnel | Avalonia.Interactivity.RoutingStrategies.Bubble, handledEventsToo: true);
+            cell.PlaybackStateChanged += (_, _) =>
+            {
+                CameraStateChanged?.Invoke(this, EventArgs.Empty);
+                if (cellIdx == _selectedCellIndex)
+                {
+                    SelectedCameraChanged?.Invoke(this, SelectedCamera);
+                }
+            };
             cell.RecordingStateChanged += (_, _) => CameraStateChanged?.Invoke(this, EventArgs.Empty);
-            cell.Closed += (_, _) => CameraStateChanged?.Invoke(this, EventArgs.Empty);
+            cell.Closed += (_, _) =>
+            {
+                CameraStateChanged?.Invoke(this, EventArgs.Empty);
+                if (cellIdx == _selectedCellIndex)
+                {
+                    SelectedCameraChanged?.Invoke(this, SelectedCamera);
+                }
+            };
 
             _cells.Add(cell);
         }
@@ -153,6 +169,7 @@ public partial class LiveViewGrid : UserControl
         if (index < 0 || index >= total || index >= _cells.Count) return;
         _selectedCellIndex = index;
         UpdateSelectedCellHighlight();
+        SelectedCameraChanged?.Invoke(this, _cells[_selectedCellIndex].CurrentCamera);
     }
 
     private void UpdateSelectedCellHighlight()
@@ -236,8 +253,18 @@ public partial class LiveViewGrid : UserControl
         int total = _currentRows * _currentCols;
         if (_selectedCellIndex >= 0 && _selectedCellIndex < total && _selectedCellIndex < _cells.Count)
         {
-            _cells[_selectedCellIndex].PlayCamera(camera, useMainStream: false);
-            SelectCell((_selectedCellIndex + 1) % total);
+            int targetIdx = _selectedCellIndex;
+            if (_cells[targetIdx].IsPlaying && _cells[targetIdx].CurrentCamera?.Id != camera.Id)
+            {
+                int emptyIdx = _cells.Take(total).ToList().FindIndex(c => !c.IsPlaying);
+                if (emptyIdx >= 0)
+                {
+                    targetIdx = emptyIdx;
+                }
+            }
+
+            _cells[targetIdx].PlayCamera(camera, useMainStream: false);
+            SelectCell(targetIdx);
             CameraStateChanged?.Invoke(this, EventArgs.Empty);
         }
     }
@@ -253,6 +280,28 @@ public partial class LiveViewGrid : UserControl
             idx++;
         }
         CameraStateChanged?.Invoke(this, EventArgs.Empty);
+        SelectedCameraChanged?.Invoke(this, SelectedCamera);
+    }
+
+    public void SyncCameraMetadata(IEnumerable<CameraDevice> latestCameras)
+    {
+        var map = latestCameras.ToDictionary(c => c.Id, c => c);
+        foreach (var cell in _cells)
+        {
+            if (cell.CurrentCamera != null && map.TryGetValue(cell.CurrentCamera.Id, out var updated))
+            {
+                cell.CurrentCamera.Name = updated.Name;
+                cell.CurrentCamera.IpAddress = updated.IpAddress;
+                cell.CurrentCamera.HasPtz = updated.HasPtz;
+                cell.CurrentCamera.Brand = updated.Brand;
+                cell.CurrentCamera.HttpPort = updated.HttpPort;
+                cell.CurrentCamera.RtspPort = updated.RtspPort;
+                cell.CurrentCamera.Username = updated.Username;
+                cell.CurrentCamera.Password = updated.Password;
+                cell.CurrentCamera.Channel = updated.Channel;
+            }
+        }
+        SelectedCameraChanged?.Invoke(this, SelectedCamera);
     }
 
     public void ToggleRecordAll()
@@ -285,6 +334,7 @@ public partial class LiveViewGrid : UserControl
             cell.StopCamera();
         }
         CameraStateChanged?.Invoke(this, EventArgs.Empty);
+        SelectedCameraChanged?.Invoke(this, SelectedCamera);
     }
 
     public HashSet<string> GetViewingCameraIds()
@@ -299,6 +349,11 @@ public partial class LiveViewGrid : UserControl
     public HashSet<string> GetRecordingCameraIds()
     {
         int total = _currentRows * _currentCols;
+        foreach (var cell in _cells.Take(total))
+        {
+            cell.RefreshRecordingIndicator();
+        }
+
         var set = _cells.Take(total)
                         .Where(c => c.IsRecording && c.CurrentCamera != null)
                         .Select(c => c.CurrentCamera!.Id)

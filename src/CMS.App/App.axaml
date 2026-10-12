@@ -37,6 +37,36 @@
         <Style Selector="GridSplitter:pressed">
             <Setter Property="Background" Value="#D94817" />
         </Style>
+
+        <!-- Prevent FluentTheme DatePicker MinWidth=296 from overflowing narrow sidebars -->
+        <Style Selector="DatePicker">
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="DatePicker /template/ Button#PART_FlyoutButton">
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+
+        <!-- Remove FluentTheme ListBoxItem asymmetric padding (12,9,12,12) around custom card templates -->
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="2" />
+            <Setter Property="Margin" Value="0,2" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <!-- Ensure ComboBoxes and Filter Controls have clear, readable font sizes -->
+        <Style Selector="ComboBox">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="MinHeight" Value="38" />
+            <Setter Property="Padding" Value="10,6" />
+        </Style>
+        <Style Selector="ComboBoxItem">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="10,8" />
+        </Style>
     </Application.Styles>
 
     <Application.Resources>

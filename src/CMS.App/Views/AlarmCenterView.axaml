@@ -19,13 +19,13 @@
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                     <!-- Filter Camera -->
-                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <TextBlock Text="Lọc Camera:" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center"/>
-                        <ComboBox ItemsSource="{Binding CameraOptions}" SelectedItem="{Binding FilterCamera}" Width="180" Height="32"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="Lọc Camera:" FontSize="13.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding CameraOptions}" SelectedItem="{Binding FilterCamera}" Width="210" MinHeight="38" FontSize="14"/>
                     </StackPanel>
 
-                    <kz:KzButton Content="🔄 Làm mới" Command="{Binding LoadAlarmsCommand}" Variant="Secondary" KzSize="Sm"/>
-                    <kz:KzButton Content="✔ Xác nhận tất cả" Command="{Binding AcknowledgeAllCommand}" Variant="Primary" KzSize="Sm"/>
+                    <kz:KzButton Content="🔄 Làm mới" Command="{Binding LoadAlarmsCommand}" Variant="Secondary" KzSize="Md"/>
+                    <kz:KzButton Content="✔ Xác nhận tất cả" Command="{Binding AcknowledgeAllCommand}" Variant="Primary" KzSize="Md"/>
                 </StackPanel>
             </Grid>
         </Border>

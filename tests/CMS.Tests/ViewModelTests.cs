@@ -103,6 +103,107 @@ public class ViewModelTests : IDisposable
         Assert.Empty(vm.Cameras);
     }
 
+    [Fact]
+    public async Task DeviceManagementVM_EditCamera_UpdatesExistingCamera()
+    {
+        var cam = new CameraDevice
+        {
+            Id = "cam-edit-01",
+            Name = "Camera 01",
+            IpAddress = "192.168.21.182",
+            Brand = CameraBrand.Tiandy,
+            RtspPort = 554,
+            HttpPort = 80
+        };
+        await _cameraRepo.AddAsync(cam);
+
+        var vm = new DeviceManagementViewModel(_cameraRepo);
+        await vm.LoadCamerasAsync();
+        Assert.Single(vm.Cameras);
+
+        // Select/Edit camera
+        vm.EditCamera(vm.Cameras[0]);
+        Assert.True(vm.IsEditingExisting);
+        Assert.Equal("Camera 01", vm.Name);
+        Assert.Equal("192.168.21.182", vm.IpAddress);
+        Assert.Equal(CameraBrand.Tiandy, vm.SelectedBrand);
+
+        // Modify fields
+        vm.Name = "Camera Cổng Chính";
+        vm.IpAddress = "192.168.21.190";
+        vm.SelectedBrand = CameraBrand.Hikvision;
+        vm.RtspPort = 8554;
+        await vm.SaveCameraAsync();
+
+        var updatedList = await _cameraRepo.GetAllAsync();
+        Assert.Single(updatedList);
+        Assert.Equal("cam-edit-01", updatedList[0].Id);
+        Assert.Equal("Camera Cổng Chính", updatedList[0].Name);
+        Assert.Equal("192.168.21.190", updatedList[0].IpAddress);
+        Assert.Equal(CameraBrand.Hikvision, updatedList[0].Brand);
+        Assert.Equal(8554, updatedList[0].RtspPort);
+    }
+
+    [Fact]
+    public async Task DeviceManagementVM_QuickAdd_AddsDiscoveredAndByIp()
+    {
+        var vm = new DeviceManagementViewModel(_cameraRepo);
+        await vm.LoadCamerasAsync();
+
+        var dev = new DiscoveredDevice
+        {
+            IPAddress = "192.168.21.10",
+            Port = 80,
+            Manufacturer = "Dahua",
+            Model = "IPC-HDW",
+            DetectedBrand = CameraBrand.Dahua
+        };
+        vm.DiscoveredDevices.Add(dev);
+
+        await vm.QuickAddDiscoveredDeviceAsync(dev);
+        Assert.True(dev.IsAlreadyAdded);
+        Assert.Single(vm.Cameras);
+        Assert.Equal("192.168.21.10", vm.Cameras[0].IpAddress);
+
+        vm.QuickAddIp = "192.168.21.45:554";
+        vm.QuickAddBrand = CameraBrand.Hikvision;
+        await vm.QuickAddByIpAsync();
+
+        Assert.Equal(2, vm.Cameras.Count);
+        Assert.Contains(vm.Cameras, c => c.IpAddress == "192.168.21.45" && c.Brand == CameraBrand.Hikvision);
+    }
+
+    [Fact]
+    public async Task DeviceManagementVM_BatchAddByIpRange_And_Filter_Works()
+    {
+        var vm = new DeviceManagementViewModel(_cameraRepo);
+        await vm.LoadCamerasAsync();
+
+        vm.BatchStartIp = "192.168.21.101";
+        vm.BatchEndIp = "192.168.21.103";
+        vm.BatchNamePrefix = "Camera Kho";
+        vm.QuickAddBrand = CameraBrand.Hikvision;
+        vm.BatchRtspPort = 554;
+        vm.QuickAddUsername = "admin";
+        vm.QuickAddPassword = "secret";
+
+        await vm.BatchAddByIpRangeAsync();
+
+        Assert.Equal(3, vm.Cameras.Count);
+        Assert.Equal(3, vm.FilteredCameras.Count);
+        Assert.Contains(vm.Cameras, c => c.IpAddress == "192.168.21.101" && c.Name.Contains("Camera Kho"));
+        Assert.Contains(vm.Cameras, c => c.IpAddress == "192.168.21.102");
+        Assert.Contains(vm.Cameras, c => c.IpAddress == "192.168.21.103");
+
+        // Test filtering by IP
+        vm.CameraSearchText = "102";
+        Assert.Single(vm.FilteredCameras);
+        Assert.Equal("192.168.21.102", vm.FilteredCameras[0].IpAddress);
+
+        vm.CameraSearchText = "";
+        Assert.Equal(3, vm.FilteredCameras.Count);
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // 2. PlaybackViewModel Tests
     // ─────────────────────────────────────────────────────────────────────────

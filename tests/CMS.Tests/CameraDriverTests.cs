@@ -242,4 +242,15 @@ public class CameraDriverTests
         bool ok = await driver.TestConnectionAsync(cam, cts.Token);
         Assert.False(ok);
     }
+
+    [Fact]
+    public async Task GenericRtspDriver_SendPtzCommand_UnreachableHost_ReturnsFalseWithoutThrowing()
+    {
+        var driver = new GenericRtspDriver(CameraBrand.ONVIF);
+        var cam = CreateCamera(ip: "192.0.2.1", httpPort: 80);
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
+        bool result = await driver.SendPtzCommandAsync(cam, PtzCommand.Up, 0.5, cts.Token);
+        Assert.False(result);
+    }
 }

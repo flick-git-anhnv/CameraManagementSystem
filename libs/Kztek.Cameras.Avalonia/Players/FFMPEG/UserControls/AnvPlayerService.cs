@@ -128,6 +128,31 @@ namespace Kztek.Cameras
         private bool _isConnect;
         internal bool IsConnect => _isConnect;
 
+        private volatile bool _isPaused;
+        internal bool IsPaused
+        {
+            get => _isPaused;
+            set
+            {
+                _isPaused = value;
+                _decoder?.ResetPlaybackClock();
+            }
+        }
+
+        private double _playbackSpeed = 1.0;
+        internal double PlaybackSpeed
+        {
+            get => _playbackSpeed;
+            set
+            {
+                _playbackSpeed = Math.Clamp(value, 0.25, 8.0);
+                if (_decoder != null)
+                {
+                    _decoder.PlaybackSpeed = _playbackSpeed;
+                }
+            }
+        }
+
         internal string RtspURL { get; set; }
         internal CameraStreamInfo VideoSource { get; set; }
 
@@ -399,6 +424,7 @@ namespace Kztek.Cameras
                 {
                     _decoder?.Dispose();
                     _decoder = new VideoStreamDecoderIntptr(RtspURL, VirtualLoopType, enableBoxAIDetection);
+                    _decoder.PlaybackSpeed = _playbackSpeed;
                     if (!_decoder.Connect())
                     {
                         await Task.Delay(1000, token);
@@ -408,6 +434,14 @@ namespace Kztek.Cameras
 
                     while (!token.IsCancellationRequested)
                     {
+                        if (_isPaused)
+                        {
+                            lastFrameTime = DateTime.Now;
+                            _decoder.ResetPlaybackClock();
+                            await Task.Delay(30, token);
+                            continue;
+                        }
+
                         var motionBox = this.motionRegions.Count > 0 ? this.motionRegions[0] : null;
 
                         // Tính kích thước decode giữ đúng aspect ratio của stream.

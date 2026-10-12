@@ -61,4 +61,16 @@ public class LiveNetworkTests
 
         Assert.True(isOnline, "Camera AIView tại 192.168.21.205 phải phản hồi kết nối thành công");
     }
+
+    [Fact]
+    public async Task LiveNetwork_AutoDiscoverAll_FindsLanCameras()
+    {
+        var discovery = new OnvifDiscoveryService();
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        var results = await discovery.AutoDiscoverAllAsync(cts.Token);
+
+        Assert.NotEmpty(results);
+        Assert.Contains(results, d => d.IPAddress == "192.168.21.182" || d.IPAddress == "192.168.21.205");
+    }
 }

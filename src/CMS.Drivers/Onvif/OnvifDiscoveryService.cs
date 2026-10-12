@@ -177,7 +177,7 @@ public class OnvifDiscoveryService : IDeviceDiscoveryService
         if (startNum > endNum) return discovered;
 
         var tasks = new List<Task>();
-        using var semaphore = new SemaphoreSlim(50); // Giới hạn 50 tác vụ đồng thời
+        using var semaphore = new SemaphoreSlim(150); // Concurrency cao cho quét LAN nội bộ cực nhanh
 
         for (uint ipNum = startNum; ipNum <= endNum; ipNum++)
         {
@@ -195,37 +195,58 @@ public class OnvifDiscoveryService : IDeviceDiscoveryService
                 await semaphore.WaitAsync(cancellationToken);
                 try
                 {
-                    foreach (var port in ports)
+                    if (cancellationToken.IsCancellationRequested) return;
+
+                    // Kiểm tra đồng thời các cổng trên cùng 1 IP (timeout ngắn 350ms cho mạng LAN)
+                    var probeTasks = ports.Select(async port =>
                     {
-                        if (cancellationToken.IsCancellationRequested) break;
-
-                        using var tcp = new TcpClient();
-                        var connectTask = tcp.ConnectAsync(currentIp, port);
-                        var timeoutTask = Task.Delay(800, cancellationToken);
-
-                        if (await Task.WhenAny(connectTask, timeoutTask) == connectTask && tcp.Connected)
+                        try
                         {
-                            lock (discovered)
+                            using var tcp = new TcpClient();
+                            var connectTask = tcp.ConnectAsync(currentIp, port);
+                            var timeoutTask = Task.Delay(350, cancellationToken);
+
+                            if (await Task.WhenAny(connectTask, timeoutTask) == connectTask && tcp.Connected)
                             {
-                                if (!discovered.Any(d => d.IPAddress == currentIp))
-                                {
-                                    discovered.Add(new DiscoveredDevice
-                                    {
-                                        IPAddress = currentIp,
-                                        Port = port,
-                                        Manufacturer = "Generic / IP Camera",
-                                        DetectedBrand = CameraBrand.ONVIF,
-                                        ServiceUrl = $"http://{currentIp}:{port}/onvif/device_service"
-                                    });
-                                }
+                                return port;
                             }
-                            break;
+                        }
+                        catch { }
+                        return -1;
+                    });
+
+                    var probeResults = await Task.WhenAll(probeTasks);
+                    var openPorts = probeResults.Where(p => p > 0).ToList();
+
+                    if (openPorts.Count > 0)
+                    {
+                        int bestPort = openPorts.Contains(80) ? 80 :
+                                       openPorts.Contains(443) ? 443 :
+                                       openPorts.Contains(8000) ? 8000 :
+                                       openPorts.Contains(37777) ? 80 :
+                                       openPorts.Contains(8080) ? 8080 : 80;
+
+                        var info = await IdentifyDeviceAsync(currentIp, openPorts, cancellationToken);
+                        lock (discovered)
+                        {
+                            if (!discovered.Any(d => d.IPAddress == currentIp))
+                            {
+                                discovered.Add(new DiscoveredDevice
+                                {
+                                    IPAddress = currentIp,
+                                    Port = bestPort,
+                                    Manufacturer = info.manufacturer,
+                                    Model = info.model,
+                                    DetectedBrand = info.brand,
+                                    ServiceUrl = $"http://{currentIp}:{bestPort}/onvif/device_service",
+                                    DiscoveredAt = DateTime.Now
+                                });
+                            }
                         }
                     }
                 }
                 catch
                 {
-                    // Port đóng
                 }
                 finally
                 {
@@ -243,6 +264,144 @@ public class OnvifDiscoveryService : IDeviceDiscoveryService
         }
 
         return discovered;
+    }
+
+    public async Task<List<DiscoveredDevice>> AutoDiscoverAllAsync(CancellationToken cancellationToken = default)
+    {
+        var devices = new Dictionary<string, DiscoveredDevice>();
+
+        // 1. Quét WS-Discovery Multicast & Broadcast (1.5 giây)
+        try
+        {
+            var wsDevices = await DiscoverOnvifDevicesAsync(TimeSpan.FromSeconds(1.5), cancellationToken);
+            foreach (var d in wsDevices)
+            {
+                devices[d.IPAddress] = d;
+            }
+        }
+        catch { }
+
+        if (cancellationToken.IsCancellationRequested)
+            return devices.Values.ToList();
+
+        // 2. Tự động quét dải subnet nội bộ đang hoạt động
+        var subnets = GetLocalSubnets();
+        int[] cameraPorts = new[] { 554, 80, 443, 8000, 37777, 8080 };
+
+        var scanTasks = new List<Task<List<DiscoveredDevice>>>();
+        foreach (var (startIp, endIp) in subnets)
+        {
+            scanTasks.Add(ScanIpRangeAsync(startIp, endIp, cameraPorts, cancellationToken));
+        }
+
+        var results = await Task.WhenAll(scanTasks);
+        foreach (var list in results)
+        {
+            foreach (var d in list)
+            {
+                if (!devices.ContainsKey(d.IPAddress))
+                {
+                    devices[d.IPAddress] = d;
+                }
+            }
+        }
+
+        return devices.Values.ToList();
+    }
+
+    private static List<(string startIp, string endIp)> GetLocalSubnets()
+    {
+        var list = new List<(string, string)>();
+        try
+        {
+            foreach (var ni in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (ni.OperationalStatus != System.Net.NetworkInformation.OperationalStatus.Up) continue;
+                if (ni.NetworkInterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Loopback) continue;
+
+                string desc = (ni.Description + " " + ni.Name).ToLowerInvariant();
+                if (desc.Contains("virtual") || desc.Contains("hyper-v") || desc.Contains("wsl") || 
+                    desc.Contains("vethernet") || desc.Contains("vmware") || desc.Contains("virtualbox") || 
+                    desc.Contains("radmin") || desc.Contains("tap") || desc.Contains("bluetooth") || desc.Contains("vpn"))
+                {
+                    continue;
+                }
+
+                var ipProps = ni.GetIPProperties();
+                foreach (var unicast in ipProps.UnicastAddresses)
+                {
+                    if (unicast.Address.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        var bytes = unicast.Address.GetAddressBytes();
+                        if (bytes[0] == 169 && bytes[1] == 254) continue; // APIPA
+                        if (bytes[0] == 26) continue; // Radmin VPN
+                        if (bytes[0] == 127) continue; // Loopback
+                        if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31) continue; // Virtual Class B
+
+                        string prefix = $"{bytes[0]}.{bytes[1]}.{bytes[2]}.";
+                        string start = $"{prefix}1";
+                        string end = $"{prefix}254";
+                        if (!list.Any(s => s.Item1 == start))
+                        {
+                            list.Add((start, end));
+                        }
+                    }
+                }
+            }
+        }
+        catch { }
+
+        // Sắp xếp ưu tiên các dải mạng thực tế đang có camera
+        list = list.OrderByDescending(s => s.Item1.Contains(".21.")).ThenByDescending(s => s.Item1.Contains(".1.")).ToList();
+
+        if (list.Count == 0)
+        {
+            list.Add(("192.168.21.1", "192.168.21.254"));
+            list.Add(("192.168.1.1", "192.168.1.254"));
+        }
+
+        return list;
+    }
+
+    private static async Task<(CameraBrand brand, string manufacturer, string model)> IdentifyDeviceAsync(string ip, List<int> openPorts, CancellationToken cancellationToken = default)
+    {
+        if (openPorts.Contains(37777)) return (CameraBrand.Dahua, "Dahua", "Dahua IPC / DVR");
+        if (openPorts.Contains(8000)) return (CameraBrand.Hikvision, "Hikvision", "Hikvision IPC / NVR");
+
+        // Thử đọc trang web quản trị qua HTTP / HTTPS (cho phép self-signed cert của camera)
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+        };
+        using var http = new HttpClient(handler) { Timeout = TimeSpan.FromMilliseconds(600) };
+
+        var urlsToTest = new List<string>();
+        if (openPorts.Contains(80)) urlsToTest.Add($"http://{ip}:80/");
+        if (openPorts.Contains(443)) urlsToTest.Add($"https://{ip}:443/");
+        if (openPorts.Contains(8080)) urlsToTest.Add($"http://{ip}:8080/");
+
+        foreach (var url in urlsToTest)
+        {
+            try
+            {
+                var resp = await http.GetAsync(url, cancellationToken);
+                string body = await resp.Content.ReadAsStringAsync(cancellationToken);
+                string lower = body.ToLowerInvariant();
+
+                if (lower.Contains("tiandy")) return (CameraBrand.Tiandy, "Tiandy", "Tiandy IP Camera");
+                if (lower.Contains("hikvision") || lower.Contains("ezviz") || lower.Contains("hilook")) return (CameraBrand.Hikvision, "Hikvision", "Hikvision Camera");
+                if (lower.Contains("dahua") || lower.Contains("imou")) return (CameraBrand.Dahua, "Dahua", "Dahua Camera");
+                if (lower.Contains("uniview") || lower.Contains("unv")) return (CameraBrand.Uniview, "Uniview", "Uniview Camera");
+                if (lower.Contains("aiview") || lower.Contains("bkav") || lower.Contains("nuxt")) return (CameraBrand.ONVIF, "Bkav AIView", "AIView Camera");
+                if (lower.Contains("hanwha") || lower.Contains("samsung") || lower.Contains("wiseprv")) return (CameraBrand.Hanwha, "Hanwha", "Hanwha Camera");
+                if (lower.Contains("kztek") || lower.Contains("e02")) return (CameraBrand.ONVIF, "KZTEK", "KZ-E02 Controller");
+            }
+            catch
+            {
+            }
+        }
+
+        return (CameraBrand.ONVIF, "Generic / ONVIF", "IP Camera");
     }
 
     internal static DiscoveredDevice? ParseProbeMatch(string responseXml, string fallbackIp)

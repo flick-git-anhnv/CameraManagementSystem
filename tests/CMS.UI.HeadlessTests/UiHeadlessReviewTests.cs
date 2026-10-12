@@ -7,6 +7,7 @@ using CMS.App.ViewModels;
 using CMS.App.Views;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using NavigationPage = CMS.App.ViewModels.NavigationPage;
@@ -96,21 +97,84 @@ public class UiHeadlessReviewTests
 
         Assert.NotNull(view);
         Assert.NotNull(view.FindControl<TimelineControl>("Timeline"));
+        Assert.NotNull(view.FindControl<Kztek.Cameras.AnvPlayer>("PlaybackPlayer"));
+
+        var datePicker = view.FindControl<DatePicker>("RecordingDatePicker");
+        var searchBtn = view.FindControl<Control>("BtnSearchRecordings");
+        Assert.NotNull(datePicker);
+        Assert.NotNull(searchBtn);
+        Assert.Equal(searchBtn!.Bounds.Width, datePicker!.Bounds.Width, 1.0);
+        Assert.Equal(searchBtn.Bounds.X, datePicker.Bounds.X, 1.0);
+
         Assert.Contains("tra cứu", vm.PlaybackStatus, StringComparison.OrdinalIgnoreCase);
     }
 
     [AvaloniaFact]
-    public void Review_DeviceManagementView_Layout_And_Inputs()
+    public async Task Review_DeviceManagementView_Layout_And_Inputs()
     {
-        var view = new DeviceManagementView();
-        var vm = new DeviceManagementViewModel();
-        view.DataContext = vm;
+        var tempDb = Path.Combine(Path.GetTempPath(), $"cms_ui_dev_{Guid.NewGuid():N}.db");
+        try
+        {
+            var repo = new CMS.Infrastructure.Data.SqliteCameraRepository(tempDb);
+            var existingCam = new CMS.Core.Entities.CameraDevice
+            {
+                Id = "cam-edit-1",
+                Name = "Camera 01",
+                IpAddress = "192.168.21.182",
+                Brand = CMS.Core.Enums.CameraBrand.Tiandy,
+                RtspPort = 554,
+                HttpPort = 80,
+                Username = "admin",
+                Password = "123"
+            };
+            await repo.AddAsync(existingCam);
 
-        EnsureMeasuredAndArranged(view, 1200, 800);
+            var view = new DeviceManagementView();
+            var vm = new DeviceManagementViewModel(repo);
+            await vm.LoadCamerasAsync();
+            view.DataContext = vm;
 
-        Assert.NotNull(view);
-        Assert.Equal("192.168.1.100", vm.IpAddress);
-        Assert.Equal(554, vm.RtspPort);
+            var hostWindow = new Window { Content = view, Width = 1200, Height = 800 };
+            hostWindow.Show();
+            EnsureMeasuredAndArranged(hostWindow, 1200, 800);
+
+            Assert.NotNull(view);
+            Assert.Single(vm.Cameras);
+
+            // Find all KzButtons in visual tree and click Edit button
+            var buttons = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(view)
+                .OfType<KztekComponentAvalonia.Controls.KzButton>()
+                .ToList();
+
+            var editBtn = buttons.FirstOrDefault(b => b.Content?.ToString()?.Contains("Sửa") == true);
+            Assert.NotNull(editBtn);
+
+            // Simulate clicking the Edit button
+            editBtn!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+
+            Assert.NotNull(vm.SelectedCamera);
+            Assert.Equal("cam-edit-1", vm.SelectedCamera!.Id);
+            Assert.Equal("Camera 01", vm.Name);
+            Assert.Equal("192.168.21.182", vm.IpAddress);
+            Assert.Equal(CMS.Core.Enums.CameraBrand.Tiandy, vm.SelectedBrand);
+
+            // Modify camera info and save
+            vm.Name = "Camera Cổng Phụ";
+            vm.IpAddress = "192.168.21.199";
+            await vm.SaveCameraAsync();
+
+            var all = await repo.GetAllAsync();
+            Assert.Single(all);
+            Assert.Equal("cam-edit-1", all[0].Id);
+            Assert.Equal("Camera Cổng Phụ", all[0].Name);
+            Assert.Equal("192.168.21.199", all[0].IpAddress);
+
+            hostWindow.Close();
+        }
+        finally
+        {
+            try { if (File.Exists(tempDb)) File.Delete(tempDb); } catch { }
+        }
     }
 
     [AvaloniaFact]

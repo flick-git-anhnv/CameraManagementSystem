@@ -122,12 +122,25 @@ public partial class VideoCellView : UserControl
         }
     }
 
+    public void RefreshRecordingIndicator()
+    {
+        if (_camera != null && _isPlaying)
+        {
+            UpdateRecordingState(GlobalStorageManager.IsRecording(_camera.Id));
+        }
+    }
+
     private void UpdateRecordingState(bool recording)
     {
         bool changed = (_isRecording != recording);
         _isRecording = recording;
         RecBadge.IsVisible = recording;
-        BtnRecord.Background = recording ? Brushes.Crimson : Brush.Parse("#3F3F46");
+        BtnRecord.Background = recording ? Brushes.Crimson : Brush.Parse("#342F50");
+        if (RecordIconDot != null)
+        {
+            RecordIconDot.Fill = recording ? Brushes.White : Brush.Parse("#EF4444");
+        }
+        ToolTip.SetTip(BtnRecord, recording ? "Dừng ghi hình" : "Bật / Dừng ghi hình (Zero-Transcode)");
         if (changed)
         {
             RecordingStateChanged?.Invoke(this, EventArgs.Empty);

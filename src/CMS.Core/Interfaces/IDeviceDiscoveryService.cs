@@ -13,4 +13,9 @@ public interface IDeviceDiscoveryService
     /// Quét dải IP (Ping & port check) để tìm thiết bị mở cổng RTSP/HTTP
     /// </summary>
     Task<List<DiscoveredDevice>> ScanIpRangeAsync(string startIp, string endIp, int[] ports, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Tự động quét toàn diện mạng nội bộ: kết hợp WS-Discovery Probe và quét dải IP subnet
+    /// </summary>
+    Task<List<DiscoveredDevice>> AutoDiscoverAllAsync(CancellationToken cancellationToken = default);
 }
