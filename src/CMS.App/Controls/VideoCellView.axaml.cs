@@ -46,7 +46,7 @@ public partial class VideoCellView : UserControl
         {
             if (isSelected)
             {
-                CellBorder.BorderBrush = Brush.Parse("#2563EB");
+                CellBorder.BorderBrush = Brush.Parse("#F05922");
                 CellBorder.BorderThickness = new Avalonia.Thickness(2);
             }
             else
@@ -57,7 +57,7 @@ public partial class VideoCellView : UserControl
                 }
                 else
                 {
-                    CellBorder.BorderBrush = Brush.Parse("#27272A");
+                    CellBorder.BorderBrush = Brush.Parse("#342F50");
                 }
                 CellBorder.BorderThickness = new Avalonia.Thickness(1);
             }
@@ -76,8 +76,8 @@ public partial class VideoCellView : UserControl
         var endpoints = driver.BuildStreamUrls(camera);
 
         string streamUrl = useMainStream ? endpoints.MainStreamUrl : endpoints.SubStreamUrl;
-        TxtStreamType.Text = useMainStream ? "MAIN" : "SUB";
-        StreamBadge.Background = useMainStream ? Brushes.ForestGreen : Brushes.RoyalBlue;
+        TxtStreamType.Text = useMainStream ? "CHÍNH" : "PHỤ";
+        StreamBadge.Background = useMainStream ? Brush.Parse("#F05922") : Brush.Parse("#4A3F8C");
 
         try
         {
@@ -100,7 +100,7 @@ public partial class VideoCellView : UserControl
         }
         catch (Exception ex)
         {
-            TxtPlaceholder.Text = $"Error: {ex.Message}";
+            TxtPlaceholder.Text = $"Lỗi kết nối: {ex.Message}";
             PlaceholderGrid.IsVisible = true;
             StatusDot.Background = Brushes.Crimson;
         }
@@ -159,7 +159,7 @@ public partial class VideoCellView : UserControl
         UpdateRecordingState(false);
         PlaceholderGrid.IsVisible = true;
         StatusDot.Background = Brushes.Crimson;
-        TxtCameraName.Text = "Empty Slot";
+        TxtCameraName.Text = "Ô camera trống";
 
         if (wasPlaying)
         {

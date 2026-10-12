@@ -1,76 +1,84 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CMS.App.ViewModels"
+             xmlns:kz="clr-namespace:KztekComponentAvalonia.Controls;assembly=KztekComponentAvalonia"
              x:Class="CMS.App.Views.AlarmCenterView"
              x:DataType="vm:AlarmCenterViewModel">
 
-    <Grid RowDefinitions="Auto, Auto, *" Margin="12">
-        <!-- 1. Top Controls Bar -->
-        <Border Grid.Row="0" Background="#18181B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,0,0,10">
+    <Grid RowDefinitions="Auto, Auto, *" Margin="14">
+        <!-- ── 1. Top Controls Bar ────────────────────────────────────────── -->
+        <Border Grid.Row="0" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16,12" Margin="0,0,0,12">
             <Grid ColumnDefinitions="Auto, *, Auto">
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <TextBlock Text="🚨" FontSize="20" VerticalAlignment="Center"/>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="ALARM &amp; SECURITY EVENT CENTER" FontWeight="Bold" FontSize="14" Foreground="White"/>
-                        <TextBlock Text="{Binding StatusSummary}" FontSize="11" Foreground="#A1A1AA"/>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <TextBlock Text="🚨" FontSize="24" VerticalAlignment="Center"/>
+                    <StackPanel VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Text="TRUNG TÂM CẢNH BÁO &amp; SỰ KIỆN AN NINH" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource ThemeTextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding StatusSummary}" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                     <!-- Filter Camera -->
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <TextBlock Text="Camera:" FontSize="12" Foreground="#A1A1AA" VerticalAlignment="Center"/>
-                        <ComboBox ItemsSource="{Binding CameraOptions}" SelectedItem="{Binding FilterCamera}" Width="160" Height="32"/>
+                        <TextBlock Text="Lọc Camera:" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding CameraOptions}" SelectedItem="{Binding FilterCamera}" Width="180" Height="32"/>
                     </StackPanel>
 
-                    <Button Content="🔄 Refresh" Command="{Binding LoadAlarmsCommand}" Background="#27272A" Foreground="White" Padding="12,6" FontSize="12"/>
-                    <Button Content="✔ Acknowledge All" Command="{Binding AcknowledgeAllCommand}" Background="#059669" Foreground="White" FontWeight="SemiBold" Padding="12,6" FontSize="12"/>
+                    <kz:KzButton Content="🔄 Làm mới" Command="{Binding LoadAlarmsCommand}" Variant="Secondary" KzSize="Sm"/>
+                    <kz:KzButton Content="✔ Xác nhận tất cả" Command="{Binding AcknowledgeAllCommand}" Variant="Primary" KzSize="Sm"/>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- 2. Alarm Status KPI Cards -->
-        <Grid Grid.Row="1" ColumnDefinitions="*, *, *, *" Margin="0,0,0,10">
-            <Border Grid.Column="0" Background="#18181B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,4,0">
+        <!-- ── 2. Alarm Status KPI Cards ──────────────────────────────────── -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, *, *, *" Margin="0,0,0,12">
+            <!-- Card 1 -->
+            <Border Grid.Column="0" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,6,0">
                 <StackPanel Spacing="4">
-                    <TextBlock Text="TOTAL LOGGED ALARMS" FontSize="10" FontWeight="SemiBold" Foreground="#71717A"/>
-                    <TextBlock Text="{Binding Alarms.Count}" FontSize="20" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="TỔNG SỐ CẢNH BÁO" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextMutedBrush}"/>
+                    <TextBlock Text="{Binding Alarms.Count}" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}"/>
                 </StackPanel>
             </Border>
-            <Border Grid.Column="1" Background="#18181B" BorderBrush="#DC2626" BorderThickness="1" CornerRadius="6" Padding="12" Margin="4,0,4,0">
+
+            <!-- Card 2 -->
+            <Border Grid.Column="1" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="#DC2626" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="3,0,3,0">
                 <StackPanel Spacing="4">
-                    <TextBlock Text="UNHANDLED ALERTS" FontSize="10" FontWeight="SemiBold" Foreground="#EF4444"/>
-                    <TextBlock Text="{Binding UnreadCount}" FontSize="20" FontWeight="Bold" Foreground="#EF4444"/>
+                    <TextBlock Text="CẢNH BÁO CHƯA XỬ LÝ" FontSize="11" FontWeight="SemiBold" Foreground="#EF4444"/>
+                    <TextBlock Text="{Binding UnreadCount}" FontSize="22" FontWeight="Bold" Foreground="#EF4444"/>
                 </StackPanel>
             </Border>
-            <Border Grid.Column="2" Background="#18181B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="6" Padding="12" Margin="4,0,4,0">
+
+            <!-- Card 3 -->
+            <Border Grid.Column="2" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="3,0,3,0">
                 <StackPanel Spacing="4">
-                    <TextBlock Text="EDGE AI VEHICLE ALERTS" FontSize="10" FontWeight="SemiBold" Foreground="#3B82F6"/>
-                    <TextBlock Text="Active" FontSize="20" FontWeight="Bold" Foreground="#3B82F6"/>
+                    <TextBlock Text="CẢNH BÁO XE (EDGE AI)" FontSize="11" FontWeight="SemiBold" Foreground="#F05922"/>
+                    <TextBlock Text="Hoạt động" FontSize="20" FontWeight="Bold" Foreground="#F05922"/>
                 </StackPanel>
             </Border>
-            <Border Grid.Column="3" Background="#18181B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="6" Padding="12" Margin="4,0,0,0">
+
+            <!-- Card 4 -->
+            <Border Grid.Column="3" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="6,0,0,0">
                 <StackPanel Spacing="4">
-                    <TextBlock Text="EDGE AI PERSON ALERTS" FontSize="10" FontWeight="SemiBold" Foreground="#10B981"/>
-                    <TextBlock Text="Active" FontSize="20" FontWeight="Bold" Foreground="#10B981"/>
+                    <TextBlock Text="CẢNH BÁO NGƯỜI (EDGE AI)" FontSize="11" FontWeight="SemiBold" Foreground="#10B981"/>
+                    <TextBlock Text="Hoạt động" FontSize="20" FontWeight="Bold" Foreground="#10B981"/>
                 </StackPanel>
             </Border>
         </Grid>
 
-        <!-- 3. Alarms List & Detail Splitter -->
-        <Grid Grid.Row="2" ColumnDefinitions="*, 320">
+        <!-- ── 3. Alarms List & Detail Splitter ────────────────────────────── -->
+        <Grid Grid.Row="2" ColumnDefinitions="*, 340">
             <!-- Left: Alarms Table -->
-            <Border Grid.Column="0" Background="#18181B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,0,8,0">
+            <Border Grid.Column="0" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,10,0">
                 <Grid RowDefinitions="Auto, *">
                     <!-- Column Headers -->
-                    <Border Grid.Row="0" Background="#222225" CornerRadius="4" Padding="12,8" Margin="0,0,0,4">
-                        <Grid ColumnDefinitions="40, 150, 150, 90, *, 100">
-                            <TextBlock Grid.Column="0" Text="Type" FontWeight="Bold" FontSize="11" Foreground="#A1A1AA"/>
-                            <TextBlock Grid.Column="1" Text="Time" FontWeight="Bold" FontSize="11" Foreground="#A1A1AA"/>
-                            <TextBlock Grid.Column="2" Text="Camera" FontWeight="Bold" FontSize="11" Foreground="#A1A1AA"/>
-                            <TextBlock Grid.Column="3" Text="Level" FontWeight="Bold" FontSize="11" Foreground="#A1A1AA"/>
-                            <TextBlock Grid.Column="4" Text="Event Description" FontWeight="Bold" FontSize="11" Foreground="#A1A1AA"/>
-                            <TextBlock Grid.Column="5" Text="Status" FontWeight="Bold" FontSize="11" Foreground="#A1A1AA" HorizontalAlignment="Right"/>
+                    <Border Grid.Row="0" Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}" CornerRadius="6" Padding="12,10" Margin="0,0,0,6">
+                        <Grid ColumnDefinitions="40, 150, 160, 110, *, 110">
+                            <TextBlock Grid.Column="0" Text="Loại" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                            <TextBlock Grid.Column="1" Text="Thời gian" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                            <TextBlock Grid.Column="2" Text="Camera nguồn" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                            <TextBlock Grid.Column="3" Text="Mức độ" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                            <TextBlock Grid.Column="4" Text="Nội dung sự kiện" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                            <TextBlock Grid.Column="5" Text="Trạng thái" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" HorizontalAlignment="Right"/>
                         </Grid>
                     </Border>
 
@@ -79,33 +87,29 @@
                         <ListBox ItemsSource="{Binding FilteredAlarms}" SelectedItem="{Binding SelectedAlarm}" Background="Transparent">
                             <ListBox.ItemTemplate>
                                 <DataTemplate x:DataType="vm:AlarmItemViewModel">
-                                    <Border Background="#1F1F23" CornerRadius="4" Padding="12,10" Margin="0,2">
-                                        <Grid ColumnDefinitions="40, 150, 150, 90, *, 100">
+                                    <Border Background="{DynamicResource ThemeItemContainerBackgroundBrush}" BorderBrush="{DynamicResource ThemeItemContainerBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,2">
+                                        <Grid ColumnDefinitions="40, 150, 160, 110, *, 110">
                                             <!-- Icon -->
-                                            <TextBlock Grid.Column="0" Text="{Binding EventTypeIcon}" FontSize="15" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{Binding EventTypeIcon}" FontSize="16" VerticalAlignment="Center"/>
 
                                             <!-- Time -->
-                                            <TextBlock Grid.Column="1" Text="{Binding TimeFormatted}" FontSize="11" Foreground="#E4E4E7" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding TimeFormatted}" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center"/>
 
                                             <!-- Camera -->
-                                            <TextBlock Grid.Column="2" Text="{Binding CameraName}" FontWeight="SemiBold" FontSize="12" Foreground="White" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding CameraName}" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
 
                                             <!-- Level Badge -->
-                                            <Border Grid.Column="3" Background="{Binding LevelBadgeColor}" CornerRadius="3" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <Border Grid.Column="3" Background="{Binding LevelBadgeColor}" CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding LevelName}" FontSize="10" FontWeight="Bold" Foreground="White"/>
                                             </Border>
 
                                             <!-- Description -->
-                                            <TextBlock Grid.Column="4" Text="{Binding Description}" FontSize="12" Foreground="#D4D4D8" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0"/>
+                                            <TextBlock Grid.Column="4" Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0"/>
 
                                             <!-- Status -->
                                             <StackPanel Grid.Column="5" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                                <Border Background="#065F46" CornerRadius="3" Padding="6,2" IsVisible="{Binding IsHandled}">
-                                                    <TextBlock Text="HANDLED" FontSize="9" FontWeight="Bold" Foreground="#34D399"/>
-                                                </Border>
-                                                <Border Background="#7F1D1D" CornerRadius="3" Padding="6,2" IsVisible="{Binding !IsHandled}">
-                                                    <TextBlock Text="PENDING" FontSize="9" FontWeight="Bold" Foreground="#F87171"/>
-                                                </Border>
+                                                <kz:KzBadge Variant="Success" BadgeType="Tag" Content="ĐÃ XỬ LÝ" IsVisible="{Binding IsHandled}"/>
+                                                <kz:KzBadge Variant="Error" BadgeType="Tag" Content="CHỜ XỬ LÝ" IsVisible="{Binding !IsHandled}"/>
                                             </StackPanel>
                                         </Grid>
                                     </Border>
@@ -117,50 +121,50 @@
             </Border>
 
             <!-- Right: Alarm Detail & Snapshot Inspector -->
-            <Border Grid.Column="1" Background="#18181B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="6" Padding="12">
+            <Border Grid.Column="1" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
                 <Grid RowDefinitions="Auto, *, Auto">
-                    <TextBlock Grid.Row="0" Text="EVENT DETAILS" FontWeight="Bold" FontSize="12" Foreground="#3B82F6" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="0" Text="CHI TIẾT SỰ KIỆN CẢNH BÁO" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource ThemeBrandBrush}" Margin="0,0,0,12"/>
 
                     <!-- Detail Info -->
                     <ScrollViewer Grid.Row="1">
                         <StackPanel Spacing="10" IsVisible="{Binding SelectedAlarm, Converter={x:Static ObjectConverters.IsNotNull}}">
-                            <Border Background="#121214" CornerRadius="4" Padding="10">
+                            <Border Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}" CornerRadius="6" Padding="12" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1">
                                 <StackPanel Spacing="6">
-                                    <TextBlock Text="Source Camera:" FontSize="11" Foreground="#A1A1AA"/>
-                                    <TextBlock Text="{Binding SelectedAlarm.CameraName}" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                                    <TextBlock Text="Camera phát hiện:" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}"/>
+                                    <TextBlock Text="{Binding SelectedAlarm.CameraName}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}"/>
 
-                                    <TextBlock Text="Trigger Timestamp:" FontSize="11" Foreground="#A1A1AA" Margin="0,4,0,0"/>
-                                    <TextBlock Text="{Binding SelectedAlarm.TimeFormatted}" FontSize="12" Foreground="White"/>
+                                    <TextBlock Text="Thời điểm kích hoạt:" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}" Margin="0,4,0,0"/>
+                                    <TextBlock Text="{Binding SelectedAlarm.TimeFormatted}" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}"/>
 
-                                    <TextBlock Text="Alert Severity:" FontSize="11" Foreground="#A1A1AA" Margin="0,4,0,0"/>
+                                    <TextBlock Text="Mức độ nghiêm trọng:" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}" Margin="0,4,0,0"/>
                                     <TextBlock Text="{Binding SelectedAlarm.LevelName}" FontWeight="Bold" FontSize="12" Foreground="{Binding SelectedAlarm.LevelBadgeColor}"/>
 
-                                    <TextBlock Text="Event Message:" FontSize="11" Foreground="#A1A1AA" Margin="0,4,0,0"/>
-                                    <TextBlock Text="{Binding SelectedAlarm.Description}" TextWrapping="Wrap" FontSize="12" Foreground="#E4E4E7"/>
+                                    <TextBlock Text="Thông điệp sự kiện:" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}" Margin="0,4,0,0"/>
+                                    <TextBlock Text="{Binding SelectedAlarm.Description}" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}"/>
                                 </StackPanel>
                             </Border>
 
                             <!-- Snapshot Preview Placeholder -->
-                            <Border Background="#09090B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="4" Height="150">
+                            <Border Background="{DynamicResource ThemeVideoAreaBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="6" Height="150">
                                 <Grid>
-                                    <TextBlock Text="📷 Alarm Snapshot Preview&#x0a;(Captured at trigger time)" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" Foreground="#71717A" FontSize="11"/>
+                                    <TextBlock Text="📷 Ảnh chụp sự kiện tại thời điểm kích hoạt&#x0a;(Chưa có ảnh chụp lưu trữ)" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="11"/>
                                 </Grid>
                             </Border>
 
-                            <Border Background="#121214" CornerRadius="4" Padding="10">
+                            <Border Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}" CornerRadius="6" Padding="12" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="Handling Info:" FontSize="11" Foreground="#A1A1AA"/>
-                                    <TextBlock Text="{Binding SelectedAlarm.HandledBy, FallbackValue='Not yet handled'}" FontSize="12" Foreground="#10B981" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Trạng thái tiếp nhận:" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}"/>
+                                    <TextBlock Text="{Binding SelectedAlarm.HandledBy, FallbackValue='Chưa được xử lý'}" FontSize="12" Foreground="#10B981" FontWeight="SemiBold"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
 
                     <!-- Acknowledge Action Button -->
-                    <Button Grid.Row="2" Content="✔ Acknowledge This Event" Command="{Binding AcknowledgeSelectedCommand}"
-                            Background="#2563EB" Foreground="White" FontWeight="Bold"
-                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="0,10"
-                            IsEnabled="{Binding SelectedAlarm, Converter={x:Static ObjectConverters.IsNotNull}}" Margin="0,10,0,0"/>
+                    <kz:KzButton Grid.Row="2" Content="✔ Xác nhận sự kiện này" Command="{Binding AcknowledgeSelectedCommand}"
+                                 Variant="Primary" KzSize="Md"
+                                 HorizontalAlignment="Stretch"
+                                 IsEnabled="{Binding SelectedAlarm, Converter={x:Static ObjectConverters.IsNotNull}}" Margin="0,12,0,0"/>
                 </Grid>
             </Border>
         </Grid>

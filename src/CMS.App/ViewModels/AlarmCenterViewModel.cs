@@ -34,14 +34,14 @@ public partial class AlarmItemViewModel : ObservableObject
     {
         AlarmLevel.Critical => "#DC2626", // Red
         AlarmLevel.Warning => "#D97706",  // Amber
-        _ => "#2563EB"                     // Blue
+        _ => "#F05922"                     // Orange/Info
     };
 
     public string LevelName => Level switch
     {
-        AlarmLevel.Critical => "CRITICAL",
-        AlarmLevel.Warning => "WARNING",
-        _ => "INFO"
+        AlarmLevel.Critical => "NGUY CẤP",
+        AlarmLevel.Warning => "CẢNH BÁO",
+        _ => "THÔNG TIN"
     };
 
     public string EventTypeIcon => EventType switch
@@ -62,7 +62,7 @@ public partial class AlarmItemViewModel : ObservableObject
         _handledBy = model.HandledBy;
     }
 
-    public void MarkHandled(string operatorName = "Admin")
+    public void MarkHandled(string operatorName = "Quản trị viên")
     {
         IsHandled = true;
         HandledBy = operatorName;
@@ -87,16 +87,16 @@ public partial class AlarmCenterViewModel : ObservableObject
     private AlarmItemViewModel? _selectedAlarm;
 
     [ObservableProperty]
-    private string _filterCamera = "All Cameras";
+    private string _filterCamera = "Tất cả Camera";
 
     [ObservableProperty]
-    private ObservableCollection<string> _cameraOptions = new() { "All Cameras" };
+    private ObservableCollection<string> _cameraOptions = new() { "Tất cả Camera" };
 
     [ObservableProperty]
     private int _unreadCount = 0;
 
     [ObservableProperty]
-    private string _statusSummary = "Monitoring Alarm & Event stream";
+    private string _statusSummary = "Đang giám sát luồng sự kiện & cảnh báo";
 
     public AlarmCenterViewModel(SqliteAlarmRepository? alarmRepo = null, ICameraRepository? cameraRepo = null)
     {
@@ -112,7 +112,7 @@ public partial class AlarmCenterViewModel : ObservableObject
         // 1. Tải danh sách camera cho filter
         var cameras = await _cameraRepo.GetAllAsync();
         CameraOptions.Clear();
-        CameraOptions.Add("All Cameras");
+        CameraOptions.Add("Tất cả Camera");
         foreach (var cam in cameras)
         {
             CameraOptions.Add(cam.Name);
@@ -133,7 +133,7 @@ public partial class AlarmCenterViewModel : ObservableObject
                     EventType = AlarmEventType.MotionDetected,
                     Level = AlarmLevel.Warning,
                     Timestamp = DateTime.Now.AddMinutes(-5),
-                    Description = "Motion detected in restricted gate perimeter"
+                    Description = "Phát hiện chuyển động tại khu vực cổng hạn chế"
                 },
                 new AlarmEvent
                 {
@@ -142,7 +142,7 @@ public partial class AlarmCenterViewModel : ObservableObject
                     EventType = AlarmEventType.LineCrossing,
                     Level = AlarmLevel.Critical,
                     Timestamp = DateTime.Now.AddMinutes(-12),
-                    Description = "Tripwire crossed: North Perimeter Fence"
+                    Description = "Vượt hàng rào ảo: Hàng rào chu vi phía Bắc"
                 }
             };
 
@@ -155,7 +155,7 @@ public partial class AlarmCenterViewModel : ObservableObject
                     EventType = AlarmEventType.PlateBlacklist,
                     Level = AlarmLevel.Critical,
                     Timestamp = DateTime.Now.AddMinutes(-25),
-                    Description = "Blacklisted vehicle detected: 29A-888.88"
+                    Description = "Phát hiện phương tiện danh sách đen: 29A-888.88"
                 });
             }
 
@@ -187,7 +187,7 @@ public partial class AlarmCenterViewModel : ObservableObject
         FilteredAlarms.Clear();
         foreach (var item in Alarms)
         {
-            if (FilterCamera == "All Cameras" || item.CameraName == FilterCamera)
+            if (FilterCamera == "Tất cả Camera" || item.CameraName == FilterCamera)
             {
                 FilteredAlarms.Add(item);
             }
@@ -199,7 +199,7 @@ public partial class AlarmCenterViewModel : ObservableObject
     {
         if (SelectedAlarm != null && !SelectedAlarm.IsHandled)
         {
-            SelectedAlarm.MarkHandled("Security Operator");
+            SelectedAlarm.MarkHandled("Nhân viên an ninh");
             UpdateUnreadCount();
         }
     }
@@ -211,7 +211,7 @@ public partial class AlarmCenterViewModel : ObservableObject
         {
             if (!a.IsHandled)
             {
-                a.MarkHandled("Security Operator");
+                a.MarkHandled("Nhân viên an ninh");
             }
         }
         UpdateUnreadCount();
@@ -220,7 +220,7 @@ public partial class AlarmCenterViewModel : ObservableObject
     public void UpdateUnreadCount()
     {
         UnreadCount = Alarms.Count(a => !a.IsHandled);
-        StatusSummary = $"{UnreadCount} unhandled alarms • Total: {Alarms.Count} logged events";
+        StatusSummary = $"{UnreadCount} cảnh báo chưa xử lý • Tổng số: {Alarms.Count} sự kiện ghi nhận";
     }
 
     public async Task TriggerAlarmEventAsync(AlarmEvent e)

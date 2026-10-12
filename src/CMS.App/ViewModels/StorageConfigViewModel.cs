@@ -17,7 +17,7 @@ public class DriveDisplayInfo
     public double FreeGb { get; set; }
     public double UsedGb => TotalGb - FreeGb;
     public double UsedPercent => TotalGb > 0 ? (UsedGb / TotalGb) * 100 : 0;
-    public string DisplayText => $"{Name} ({Label}) • {FreeGb:F1} GB free of {TotalGb:F1} GB ({UsedPercent:F0}% used)";
+    public string DisplayText => $"{Name} ({Label}) • Còn trống {FreeGb:F1} GB / {TotalGb:F1} GB (Đã dùng {UsedPercent:F0}%)";
 }
 
 public partial class StorageConfigViewModel : ObservableObject
@@ -101,7 +101,7 @@ public partial class StorageConfigViewModel : ObservableObject
                     var item = new DriveDisplayInfo
                     {
                         Name = d.Name,
-                        Label = string.IsNullOrEmpty(d.VolumeLabel) ? "Local Disk" : d.VolumeLabel,
+                        Label = string.IsNullOrEmpty(d.VolumeLabel) ? "Ổ đĩa cục bộ" : d.VolumeLabel,
                         TotalGb = total,
                         FreeGb = free
                     };
@@ -124,7 +124,7 @@ public partial class StorageConfigViewModel : ObservableObject
     {
         if (drive == null) return;
         RootStoragePath = Path.Combine(drive.Name, "CMS_Recordings");
-        StatusMessage = $"Storage path set to {RootStoragePath}. Click 'Save Settings' to apply.";
+        StatusMessage = $"Thư mục lưu trữ đã chọn là {RootStoragePath}. Nhấn 'Lưu cài đặt' để áp dụng.";
     }
 
     [RelayCommand]
@@ -132,7 +132,7 @@ public partial class StorageConfigViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(RootStoragePath))
         {
-            StatusMessage = "Storage path cannot be empty.";
+            StatusMessage = "Đường dẫn lưu trữ không được để trống.";
             return;
         }
 
@@ -142,7 +142,7 @@ public partial class StorageConfigViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Cannot create directory '{RootStoragePath}': {ex.Message}";
+            StatusMessage = $"Không thể tạo thư mục '{RootStoragePath}': {ex.Message}";
             return;
         }
 
@@ -166,12 +166,12 @@ public partial class StorageConfigViewModel : ObservableObject
                 await _cameraRepo.UpdateAsync(cam);
             }
 
-            StatusMessage = "✅ Storage configuration saved and applied to Storage Engine!";
+            StatusMessage = "✅ Đã lưu cấu hình lưu trữ và áp dụng vào Động cơ ghi hình!";
             RefreshDrives();
         }
         else
         {
-            StatusMessage = "❌ Failed to save storage configuration.";
+            StatusMessage = "❌ Không thể lưu cấu hình lưu trữ.";
         }
     }
 

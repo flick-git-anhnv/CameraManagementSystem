@@ -28,7 +28,7 @@ public partial class PlaybackViewModel : ObservableObject
     private VideoSegment? _currentPlayingSegment;
 
     [ObservableProperty]
-    private string _playbackStatus = "Select camera and date to search recorded video.";
+    private string _playbackStatus = "Chọn camera và ngày cần tra cứu bản ghi video.";
 
     [ObservableProperty]
     private bool _isPlaying = false;
@@ -65,14 +65,14 @@ public partial class PlaybackViewModel : ObservableObject
     {
         if (SelectedCamera == null)
         {
-            PlaybackStatus = "Please select a camera to search.";
+            PlaybackStatus = "Vui lòng chọn camera để tra cứu bản ghi.";
             return;
         }
 
         DateTime dayStart = SelectedDate.Date;
         DateTime dayEnd = dayStart.AddDays(1).AddSeconds(-1);
 
-        PlaybackStatus = $"Searching recordings for {SelectedCamera.Name} on {dayStart:yyyy-MM-dd}...";
+        PlaybackStatus = $"Đang tìm kiếm bản ghi cho {SelectedCamera.Name} ngày {dayStart:yyyy-MM-dd}...";
 
         var list = await _segmentRepo.GetSegmentsAsync(SelectedCamera.Id, dayStart, dayEnd);
         AvailableSegments.Clear();
@@ -82,8 +82,8 @@ public partial class PlaybackViewModel : ObservableObject
         }
 
         PlaybackStatus = list.Count > 0
-            ? $"✅ Found {list.Count} recorded segment(s) on {dayStart:yyyy-MM-dd}."
-            : $"ℹ️ No recordings found for {SelectedCamera.Name} on {dayStart:yyyy-MM-dd}.";
+            ? $"✅ Tìm thấy {list.Count} đoạn video ghi hình trong ngày {dayStart:yyyy-MM-dd}."
+            : $"ℹ️ Không có bản ghi nào cho {SelectedCamera.Name} trong ngày {dayStart:yyyy-MM-dd}.";
     }
 
     [RelayCommand]

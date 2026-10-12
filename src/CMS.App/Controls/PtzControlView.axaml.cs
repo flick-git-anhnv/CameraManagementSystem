@@ -15,7 +15,7 @@ public partial class PtzControlView : UserControl
         set
         {
             _camera = value;
-            TxtTargetCamera.Text = _camera != null ? _camera.Name : "No Camera";
+            TxtTargetCamera.Text = _camera != null ? _camera.Name : "Chưa chọn camera";
         }
     }
 

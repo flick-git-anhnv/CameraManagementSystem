@@ -67,7 +67,7 @@ public partial class DeviceManagementViewModel : ObservableObject
         if (IsScanning) return;
 
         IsScanning = true;
-        StatusMessage = "🔍 Scanning network for ONVIF cameras (WS-Discovery)...";
+        StatusMessage = "🔍 Đang dò quét mạng LAN tìm thiết bị ONVIF (WS-Discovery)...";
         DiscoveredDevices.Clear();
 
         try
@@ -81,12 +81,12 @@ public partial class DeviceManagementViewModel : ObservableObject
             }
 
             StatusMessage = found.Count > 0
-                ? $"✅ Found {found.Count} device(s) on network."
-                : "⚠️ No ONVIF devices found via broadcast. You can add camera manually by IP.";
+                ? $"✅ Tìm thấy {found.Count} thiết bị ONVIF trên mạng LAN."
+                : "⚠️ Không tìm thấy thiết bị ONVIF tự động. Bạn có thể thêm thủ công bằng địa chỉ IP.";
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Scan error: {ex.Message}";
+            StatusMessage = $"Lỗi dò quét: {ex.Message}";
         }
         finally
         {
@@ -103,7 +103,7 @@ public partial class DeviceManagementViewModel : ObservableObject
         HttpPort = dev.Port;
         Name = $"{dev.Manufacturer} {dev.Model}".Trim();
         SelectedBrand = dev.DetectedBrand;
-        StatusMessage = $"Selected {dev.IPAddress}. Enter username/password and click 'Save Camera'.";
+        StatusMessage = $"Đã chọn {dev.IPAddress}. Hãy nhập tài khoản/mật khẩu rồi nhấn 'Lưu camera'.";
     }
 
     [RelayCommand]
@@ -111,7 +111,7 @@ public partial class DeviceManagementViewModel : ObservableObject
     {
         if (IsTesting) return;
         IsTesting = true;
-        StatusMessage = $"Testing connection to {IpAddress}:{RtspPort}...";
+        StatusMessage = $"Đang kiểm tra kết nối tới {IpAddress}:{RtspPort}...";
 
         try
         {
@@ -130,12 +130,12 @@ public partial class DeviceManagementViewModel : ObservableObject
             bool success = await driver.TestConnectionAsync(tempCam);
 
             StatusMessage = success
-                ? $"✅ Connection SUCCESSFUL to {IpAddress}!"
-                : $"❌ Cannot connect to {IpAddress}:{RtspPort}. Please check IP, port, and network.";
+                ? $"✅ Kết nối THÀNH CÔNG tới camera tại {IpAddress}!"
+                : $"❌ Không thể kết nối tới {IpAddress}:{RtspPort}. Vui lòng kiểm tra IP, cổng và tài khoản.";
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Test failed: {ex.Message}";
+            StatusMessage = $"Lỗi kiểm tra: {ex.Message}";
         }
         finally
         {
@@ -148,7 +148,7 @@ public partial class DeviceManagementViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(IpAddress))
         {
-            StatusMessage = "IP Address cannot be empty.";
+            StatusMessage = "Địa chỉ IP không được để trống.";
             return;
         }
 
@@ -166,13 +166,13 @@ public partial class DeviceManagementViewModel : ObservableObject
         bool ok = await _cameraRepo.AddAsync(cam);
         if (ok)
         {
-            StatusMessage = $"✅ Saved camera '{cam.Name}' successfully!";
+            StatusMessage = $"✅ Đã lưu cấu hình camera '{cam.Name}' thành công!";
             await LoadCamerasAsync();
             ResetForm();
         }
         else
         {
-            StatusMessage = "❌ Failed to save camera to database.";
+            StatusMessage = "❌ Lưu camera vào cơ sở dữ liệu thất bại.";
         }
     }
 
@@ -183,7 +183,7 @@ public partial class DeviceManagementViewModel : ObservableObject
         bool ok = await _cameraRepo.DeleteAsync(cam.Id);
         if (ok)
         {
-            StatusMessage = $"Deleted camera '{cam.Name}'.";
+            StatusMessage = $"Đã xóa camera '{cam.Name}'.";
             await LoadCamerasAsync();
             if (SelectedCamera?.Id == cam.Id)
             {
@@ -205,7 +205,7 @@ public partial class DeviceManagementViewModel : ObservableObject
         Password = cam.Password;
         Channel = cam.Channel;
         SelectedBrand = cam.Brand;
-        StatusMessage = $"Editing camera '{cam.Name}'.";
+        StatusMessage = $"Đang chỉnh sửa camera '{cam.Name}'.";
     }
 
     [RelayCommand]

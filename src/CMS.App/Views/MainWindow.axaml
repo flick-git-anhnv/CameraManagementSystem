@@ -4,10 +4,11 @@
         xmlns:views="using:CMS.App.Views"
         xmlns:controls="using:CMS.App.Controls"
         xmlns:entities="using:CMS.Core.Entities"
+        xmlns:kz="clr-namespace:KztekComponentAvalonia.Controls;assembly=KztekComponentAvalonia"
         x:Class="CMS.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding Title}"
-        Width="1380" Height="840"
+        Width="1420" Height="860"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource ThemeBackgroundBrush}">
 
@@ -15,100 +16,123 @@
         <Style Selector="Button.nav-tab">
             <Setter Property="Background" Value="{DynamicResource ThemeNavButtonInactiveBackgroundBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource ThemeNavButtonInactiveForegroundBrush}"/>
-            <Setter Property="Padding" Value="14,7"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Medium"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemeCardBorderBrush}"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Button.nav-tab:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource ThemeButtonSecondaryBackgroundBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}"/>
         </Style>
         <Style Selector="Button.nav-tab.active">
-            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Background" Value="#F05922"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
         </Style>
         <Style Selector="Button.nav-tab.active:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="Background" Value="#D94817"/>
             <Setter Property="Foreground" Value="White"/>
         </Style>
     </Window.Styles>
 
     <Grid RowDefinitions="Auto, *, Auto">
-        <!-- Top Navigation Bar -->
-        <Border Grid.Row="0" Background="{DynamicResource ThemeNavBackgroundBrush}" Padding="14,10" BorderBrush="{DynamicResource ThemeNavBorderBrush}" BorderThickness="0,0,0,1">
+        <!-- ── Top Navigation Bar ─────────────────────────────────────────── -->
+        <Border Grid.Row="0" Background="{DynamicResource ThemeNavBackgroundBrush}" Padding="16,10" BorderBrush="{DynamicResource ThemeNavBorderBrush}" BorderThickness="0,0,0,1">
             <Grid ColumnDefinitions="Auto, *, Auto">
                 <!-- Brand Logo & Title -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <Border Background="#2563EB" CornerRadius="4" Padding="6,3">
-                        <TextBlock Text="KZTEK" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                    <Border Background="#F05922" CornerRadius="6" Padding="8,4" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="KZTEK" FontWeight="Bold" FontSize="13" Foreground="White" LetterSpacing="1"/>
+                            <TextBlock Text="VMS" FontWeight="Normal" FontSize="10" Foreground="#FED7AA" VerticalAlignment="Center"/>
+                        </StackPanel>
                     </Border>
-                    <TextBlock Text="Camera Management System" FontWeight="SemiBold" FontSize="15" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Camera Management System" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource ThemeTextPrimaryBrush}"/>
+                        <TextBlock Text="Nền tảng Quản trị &amp; Giám sát Video Thông minh" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}"/>
+                    </StackPanel>
                 </StackPanel>
 
-                <!-- Navigation Tabs -->
+                <!-- Navigation Tabs (100% Vietnamese) -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                    <Button Content="📺 Live View" 
+                    <Button Content="📺 Trực tiếp" 
                             Command="{Binding NavigateCommand}" 
                             CommandParameter="{x:Static vm:NavigationPage.LiveView}"
                             Classes="nav-tab"
-                            Classes.active="{Binding IsLiveViewActive}"/>
+                            Classes.active="{Binding IsLiveViewActive}"
+                            ToolTip.Tip="Xem luồng trực tiếp đa khung hình"/>
 
-                    <Button Content="⏪ Playback" 
+                    <Button Content="⏪ Xem lại" 
                             Command="{Binding NavigateCommand}" 
                             CommandParameter="{x:Static vm:NavigationPage.Playback}"
                             Classes="nav-tab"
-                            Classes.active="{Binding IsPlaybackActive}"/>
+                            Classes.active="{Binding IsPlaybackActive}"
+                            ToolTip.Tip="Tìm kiếm và phát lại bản ghi lưu trữ"/>
 
-                    <Button Content="🤖 AI Analytics" 
+                    <Button Content="🤖 Phân tích AI" 
                             Command="{Binding NavigateCommand}" 
                             CommandParameter="{x:Static vm:NavigationPage.AiAnalytics}"
                             Classes="nav-tab"
-                            Classes.active="{Binding IsAiAnalyticsActive}"/>
+                            Classes.active="{Binding IsAiAnalyticsActive}"
+                            ToolTip.Tip="Phân tích trí tuệ nhân tạo nhận diện biển số và người"/>
 
-                    <Button Content="🗺️ E-Map" 
+                    <Button Content="🗺️ Bản đồ E-Map" 
                             Command="{Binding NavigateCommand}" 
                             CommandParameter="{x:Static vm:NavigationPage.EMap}"
                             Classes="nav-tab"
-                            Classes.active="{Binding IsEMapActive}"/>
+                            Classes.active="{Binding IsEMapActive}"
+                            ToolTip.Tip="Sơ đồ bố trí camera trên mặt bằng"/>
 
-                    <Button Content="🚨 Alarms" 
+                    <Button Content="🚨 Cảnh báo" 
                             Command="{Binding NavigateCommand}" 
                             CommandParameter="{x:Static vm:NavigationPage.AlarmCenter}"
                             Classes="nav-tab"
-                            Classes.active="{Binding IsAlarmCenterActive}"/>
+                            Classes.active="{Binding IsAlarmCenterActive}"
+                            ToolTip.Tip="Trung tâm quản lý sự kiện và cảnh báo an ninh"/>
 
-                    <Button Content="⚙️ Device Management" 
+                    <Button Content="⚙️ Thiết bị" 
                             Command="{Binding NavigateCommand}" 
                             CommandParameter="{x:Static vm:NavigationPage.DeviceManagement}"
                             Classes="nav-tab"
-                            Classes.active="{Binding IsDeviceManagementActive}"/>
+                            Classes.active="{Binding IsDeviceManagementActive}"
+                            ToolTip.Tip="Quản lý và cấu hình camera ONVIF / RTSP"/>
 
-                    <Button Content="💾 Storage" 
+                    <Button Content="💾 Lưu trữ" 
                             Command="{Binding NavigateCommand}" 
                             CommandParameter="{x:Static vm:NavigationPage.StorageSettings}"
                             Classes="nav-tab"
-                            Classes.active="{Binding IsStorageSettingsActive}"/>
+                            Classes.active="{Binding IsStorageSettingsActive}"
+                            ToolTip.Tip="Cài đặt ổ đĩa, phân vùng và lịch ghi hình"/>
                 </StackPanel>
 
                 <!-- Right Status & Theme Switcher -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <Border Background="#10B981" CornerRadius="10" Width="8" Height="8" VerticalAlignment="Center"/>
-                    <TextBlock Text="VMS Server Online" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center"/>
+                    <Border Background="#10B981" CornerRadius="4" Width="8" Height="8" VerticalAlignment="Center"/>
+                    <TextBlock Text="Máy chủ VMS hoạt động" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center"/>
                     <TextBlock Text="•" Foreground="{DynamicResource ThemeTextMutedBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="👤 Administrator" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="👤 Quản trị viên" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center"/>
                     <TextBlock Text="•" Foreground="{DynamicResource ThemeTextMutedBrush}" VerticalAlignment="Center"/>
 
                     <!-- Theme Toggle Button -->
                     <Button Command="{Binding ToggleThemeCommand}"
-                            ToolTip.Tip="Chuyển đổi giao diện Sáng / Tối (Dark / Light Theme)"
+                            ToolTip.Tip="Chuyển đổi giao diện Sáng / Tối"
                             Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}"
                             Foreground="{DynamicResource ThemeButtonSecondaryForegroundBrush}"
                             BorderBrush="{DynamicResource ThemeButtonSecondaryBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="16"
-                            Padding="10,4"
+                            Padding="10,5"
                             Cursor="Hand"
                             VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="6">
@@ -120,12 +144,12 @@
             </Grid>
         </Border>
 
-        <!-- Main Content Area -->
+        <!-- ── Main Content Area ─────────────────────────────────────────── -->
         <Grid Grid.Row="1">
             <!-- 1. Live View Page -->
             <Grid IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.LiveView}}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="260" MinWidth="180" MaxWidth="400"/>
+                    <ColumnDefinition Width="270" MinWidth="200" MaxWidth="420"/>
                     <ColumnDefinition Width="6"/>
                     <ColumnDefinition Width="*" MinWidth="400"/>
                     <ColumnDefinition Width="Auto"/>
@@ -134,37 +158,35 @@
                 <!-- Left Sidebar: Device Tree -->
                 <Border Grid.Column="0" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="0,0,1,0" Padding="12">
                     <Grid RowDefinitions="Auto, Auto, *">
-                        <TextBlock Grid.Row="0" Text="CAMERAS (DOUBLE CLICK TO PLAY)" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}" Margin="0,0,0,8"/>
-                        <TextBox Grid.Row="1" Text="{Binding SearchText}" PlaceholderText="Search camera..." Margin="0,0,0,10"/>
+                        <TextBlock Grid.Row="0" Text="DANH SÁCH CAMERA (NHẤN ĐÚP ĐỂ PHÁT)" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}" Margin="0,0,0,8"/>
+                        
+                        <!-- Search Box -->
+                        <kz:KzTextBox Grid.Row="1" Text="{Binding SearchText}" PlaceholderText="Tìm camera theo tên, IP..." KzSize="Sm" Margin="0,0,0,10"/>
                         
                         <ScrollViewer Grid.Row="2">
                             <ListBox x:Name="CameraListBox" ItemsSource="{Binding FilteredCameras}" Background="Transparent">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="vm:CameraItemViewModel">
-                                        <Border Background="{DynamicResource ThemeItemContainerBackgroundBrush}" BorderBrush="{DynamicResource ThemeItemContainerBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10,8" Margin="0,2">
+                                        <Border Background="{DynamicResource ThemeItemContainerBackgroundBrush}" BorderBrush="{DynamicResource ThemeItemContainerBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,2">
                                             <Grid ColumnDefinitions="Auto, *, Auto">
                                                 <Border Grid.Column="0" Background="#10B981" CornerRadius="4" Width="8" Height="8" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,6,0">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="12" TextTrimming="CharacterEllipsis"/>
                                                     <TextBlock Text="{Binding IpAddress}" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
                                                 </StackPanel>
 
                                                 <!-- Status Badges & Action -->
                                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                                     <!-- Recording Status Badge -->
-                                                    <Border Background="#DC2626" CornerRadius="3" Padding="5,2" VerticalAlignment="Center"
-                                                            IsVisible="{Binding IsRecording}" ToolTip.Tip="Đang ghi hình (Zero-Transcode Recording)">
-                                                        <TextBlock Text="● REC" FontSize="9" FontWeight="Bold" Foreground="White"/>
-                                                    </Border>
+                                                    <kz:KzBadge Variant="Error" BadgeType="Tag" Content="● GHI"
+                                                                IsVisible="{Binding IsRecording}" ToolTip.Tip="Đang ghi hình liên tục"/>
 
                                                     <!-- Viewing Status Badge -->
-                                                    <Border Background="#2563EB" CornerRadius="3" Padding="5,2" VerticalAlignment="Center"
-                                                            IsVisible="{Binding IsViewing}" ToolTip.Tip="Đang phát trên Live View">
-                                                        <TextBlock Text="● LIVE" FontSize="9" FontWeight="Bold" Foreground="White"/>
-                                                    </Border>
+                                                    <kz:KzBadge Variant="Accent" BadgeType="Tag" Content="● LIVE"
+                                                                IsVisible="{Binding IsViewing}" ToolTip.Tip="Đang phát trực tiếp trên lưới"/>
 
                                                     <!-- Play Icon when Not Viewing -->
-                                                    <TextBlock Text="▶" Foreground="#3B82F6" VerticalAlignment="Center"
+                                                    <TextBlock Text="▶" Foreground="#F05922" VerticalAlignment="Center"
                                                                IsVisible="{Binding !IsViewing}" ToolTip.Tip="Nhấn đúp để phát"/>
                                                 </StackPanel>
                                             </Grid>
@@ -215,17 +237,28 @@
                 <views:AlarmCenterView DataContext="{Binding AlarmCenterVM}"/>
             </Border>
 
-            <!-- 7. AI Analytics Page Placeholder -->
+            <!-- 7. AI Analytics Page -->
             <Grid IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.AiAnalytics}}">
-                <TextBlock Text="🤖 Edge AI Analytics (Vehicles &amp; Persons) will be loaded here (Milestone 7 &amp; 8)" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="16"/>
+                <Border Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="32" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="600">
+                    <StackPanel Spacing="12" HorizontalAlignment="Center">
+                        <TextBlock Text="🤖" FontSize="48" HorizontalAlignment="Center"/>
+                        <TextBlock Text="TRUNG TÂM PHÂN TÍCH TRÍ TUỆ NHÂN TẠO (EDGE AI)" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ThemeBrandBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Hệ thống tích hợp mô hình học sâu suy luận biên: Nhận diện biển số phương tiện (ALPR) và phát hiện xâm nhập con người thời gian thực."
+                                   TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                        <Border Background="{DynamicResource ThemeItemContainerBackgroundBrush}" CornerRadius="6" Padding="12,8" Margin="0,8,0,0">
+                            <TextBlock Text="✅ Các dịch vụ AI suy luận biên đang chạy nền và đẩy sự kiện về Trung tâm cảnh báo"
+                                       FontSize="11" Foreground="#10B981" HorizontalAlignment="Center"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
             </Grid>
         </Grid>
 
-        <!-- Bottom Status Bar -->
-        <Border Grid.Row="2" Background="{DynamicResource ThemeStatusBarBackgroundBrush}" Padding="14,4" BorderBrush="{DynamicResource ThemeStatusBarBorderBrush}" BorderThickness="0,1,0,0">
+        <!-- ── Bottom Status Bar ─────────────────────────────────────────── -->
+        <Border Grid.Row="2" Background="{DynamicResource ThemeStatusBarBackgroundBrush}" Padding="16,5" BorderBrush="{DynamicResource ThemeStatusBarBorderBrush}" BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="Auto, *, Auto">
                 <TextBlock Grid.Column="0" Text="{Binding SystemStatus}" Foreground="{DynamicResource ThemeStatusBarForegroundBrush}" FontSize="12"/>
-                <TextBlock Grid.Column="2" Text="KZTEK VMS Core v1.0.0 • .NET 8 Multiplatform" Foreground="{DynamicResource ThemeStatusBarMutedForegroundBrush}" FontSize="12"/>
+                <TextBlock Grid.Column="2" Text="KZTEK VMS Core v1.0.0 • Đa nền tảng .NET 8" Foreground="{DynamicResource ThemeStatusBarMutedForegroundBrush}" FontSize="12"/>
             </Grid>
         </Border>
     </Grid>

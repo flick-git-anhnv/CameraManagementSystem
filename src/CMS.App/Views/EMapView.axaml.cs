@@ -65,13 +65,13 @@ public partial class EMapView : UserControl
             var pinButton = new Button
             {
                 Content = "📹",
-                Background = Brush.Parse("#2563EB"),
+                Background = Brush.Parse("#F05922"),
                 Foreground = Brushes.White,
                 Padding = new Thickness(6, 4),
                 CornerRadius = new CornerRadius(14),
                 Cursor = new Cursor(StandardCursorType.Hand)
             };
-            ToolTip.SetTip(pinButton, $"Camera: {node.CameraName} (Click to preview)");
+            ToolTip.SetTip(pinButton, $"Camera: {node.CameraName} (Nhấn để xem trực tiếp)");
 
             var cam = vm.AvailableCameras.FirstOrDefault(c => c.Id == node.CameraId);
 
@@ -122,7 +122,7 @@ public partial class EMapView : UserControl
 
     private void OpenPreview(CameraDevice camera)
     {
-        TxtPopupTitle.Text = $"LIVE: {camera.Name}";
+        TxtPopupTitle.Text = $"TRỰC TIẾP: {camera.Name}";
         PopupPreview.IsVisible = true;
         PopupPlayer.PlayCamera(camera, useMainStream: false);
     }

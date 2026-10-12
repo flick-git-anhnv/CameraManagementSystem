@@ -3,7 +3,7 @@
              xmlns:kz="using:Kztek.Cameras"
              x:Class="CMS.App.Controls.VideoCellView">
 
-    <Border x:Name="CellBorder" Background="{DynamicResource ThemeVideoAreaBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="4" ClipToBounds="True">
+    <Border x:Name="CellBorder" Background="{DynamicResource ThemeVideoAreaBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
         <Grid>
             <!-- 1. Video Player Surface -->
             <kz:AnvPlayer x:Name="Player" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
@@ -11,41 +11,41 @@
             <!-- 2. Placeholder when No Video is Playing -->
             <Grid x:Name="PlaceholderGrid" Background="{DynamicResource ThemeVideoCellPlaceholderBrush}" IsVisible="True">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
-                    <TextBlock Text="📹" FontSize="32" HorizontalAlignment="Center" Opacity="0.5"/>
-                    <TextBlock x:Name="TxtPlaceholder" Text="No Video Stream" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="13" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Double click camera from list to play" Foreground="{DynamicResource ThemeTextMutedBrush}" Opacity="0.7" FontSize="11" HorizontalAlignment="Center"/>
+                    <TextBlock Text="📹" FontSize="36" HorizontalAlignment="Center" Opacity="0.4"/>
+                    <TextBlock x:Name="TxtPlaceholder" Text="Chưa có luồng video" Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Nhấn đúp camera trong danh sách để phát" Foreground="{DynamicResource ThemeTextMutedBrush}" Opacity="0.8" FontSize="11" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Grid>
 
             <!-- 3. Top OSD Overlay -->
-            <Border VerticalAlignment="Top" Background="#90000000" Padding="8,4" Margin="4" CornerRadius="4">
+            <Border VerticalAlignment="Top" Background="#A013111C" Padding="8,4" Margin="6" CornerRadius="6">
                 <Grid ColumnDefinitions="Auto, *, Auto">
                     <!-- Status, Camera Name & Badges -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                         <Border x:Name="StatusDot" Background="#EF4444" CornerRadius="4" Width="8" Height="8" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="TxtCameraName" Text="Camera Slot" FontWeight="Bold" FontSize="12" Foreground="White"/>
+                        <TextBlock x:Name="TxtCameraName" Text="Ô camera trống" FontWeight="SemiBold" FontSize="12" Foreground="White" VerticalAlignment="Center"/>
                         
                         <!-- Stream Resolution Badge -->
-                        <Border x:Name="StreamBadge" Background="#2563EB" CornerRadius="3" Padding="4,1" VerticalAlignment="Center">
-                            <TextBlock x:Name="TxtStreamType" Text="SUB" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                        <Border x:Name="StreamBadge" Background="#4A3F8C" CornerRadius="3" Padding="5,2" VerticalAlignment="Center">
+                            <TextBlock x:Name="TxtStreamType" Text="PHỤ" FontSize="9" FontWeight="Bold" Foreground="White"/>
                         </Border>
 
                         <!-- Recording Indicator Badge -->
-                        <Border x:Name="RecBadge" Background="#DC2626" CornerRadius="3" Padding="4,1" VerticalAlignment="Center" IsVisible="False">
-                            <TextBlock Text="● REC" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                        <Border x:Name="RecBadge" Background="#DC2626" CornerRadius="3" Padding="5,2" VerticalAlignment="Center" IsVisible="False">
+                            <TextBlock Text="● GHI" FontSize="9" FontWeight="Bold" Foreground="White"/>
                         </Border>
                     </StackPanel>
 
                     <!-- Top Action Buttons -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
-                        <Button x:Name="BtnRecord" Content="⏺️" ToolTip.Tip="Toggle Recording (Zero-Transcode)"
-                                Background="#3F3F46" Foreground="White" Padding="6,2" FontSize="10" Height="22"/>
-                        <Button x:Name="BtnToggleStream" Content="HD" ToolTip.Tip="Toggle Main / Sub Stream"
-                                Background="#3F3F46" Foreground="White" Padding="6,2" FontSize="10" Height="22"/>
-                        <Button x:Name="BtnSnapshot" Content="📸" ToolTip.Tip="Take Snapshot"
-                                Background="#3F3F46" Foreground="White" Padding="6,2" FontSize="10" Height="22"/>
-                        <Button x:Name="BtnClose" Content="✕" ToolTip.Tip="Close Stream"
-                                Background="#DC2626" Foreground="White" Padding="6,2" FontSize="10" Height="22"/>
+                        <Button x:Name="BtnRecord" Content="⏺️" ToolTip.Tip="Bật / Dừng ghi hình (Zero-Transcode)"
+                                Background="#342F50" Foreground="White" Padding="6,2" FontSize="10" Height="24" CornerRadius="4"/>
+                        <Button x:Name="BtnToggleStream" Content="HD" ToolTip.Tip="Chuyển đổi luồng Chính (HD) / Phụ (SD)"
+                                Background="#342F50" Foreground="White" Padding="6,2" FontSize="10" Height="24" CornerRadius="4"/>
+                        <Button x:Name="BtnSnapshot" Content="📸" ToolTip.Tip="Chụp ảnh khung hình hiện tại"
+                                Background="#342F50" Foreground="White" Padding="6,2" FontSize="10" Height="24" CornerRadius="4"/>
+                        <Button x:Name="BtnClose" Content="✕" ToolTip.Tip="Đóng luồng camera"
+                                Background="#DC2626" Foreground="White" Padding="6,2" FontSize="10" Height="24" CornerRadius="4"/>
                     </StackPanel>
                 </Grid>
             </Border>

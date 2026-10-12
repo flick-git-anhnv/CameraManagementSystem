@@ -25,10 +25,10 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly ICameraRepository _cameraRepo;
 
     [ObservableProperty]
-    private string _title = "KZTEK Camera Management System (CMS / VMS)";
+    private string _title = "Hệ thống Quản trị Camera Giám sát KZTEK (KZTEK CMS / VMS)";
 
     [ObservableProperty]
-    private string _systemStatus = "Ready - Multi-brand VMS & Edge AI";
+    private string _systemStatus = "Hệ thống sẵn sàng • Quản lý tập trung VMS & AI biên";
 
     [ObservableProperty]
     private NavigationPage _currentPage = NavigationPage.LiveView;
@@ -49,7 +49,7 @@ public partial class MainWindowViewModel : ObservableObject
     private string _themeIcon = "🌙";
 
     [ObservableProperty]
-    private string _themeName = "Dark";
+    private string _themeName = "Tối";
 
     public bool IsLiveViewActive => CurrentPage == NavigationPage.LiveView;
     public bool IsPlaybackActive => CurrentPage == NavigationPage.Playback;
@@ -120,13 +120,13 @@ public partial class MainWindowViewModel : ObservableObject
             {
                 Application.Current.RequestedThemeVariant = ThemeVariant.Dark;
                 ThemeIcon = "🌙";
-                ThemeName = "Dark";
+                ThemeName = "Tối";
             }
             else
             {
                 Application.Current.RequestedThemeVariant = ThemeVariant.Light;
                 ThemeIcon = "☀️";
-                ThemeName = "Light";
+                ThemeName = "Sáng";
             }
         }
     }
@@ -146,7 +146,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
 
         ApplyCameraFilter();
-        SystemStatus = $"Connected • {ConfiguredCameras.Count} camera(s) registered in system";
+        SystemStatus = $"Đã kết nối • {ConfiguredCameras.Count} camera đã đăng ký trong hệ thống";
     }
 
     partial void OnSearchTextChanged(string value)

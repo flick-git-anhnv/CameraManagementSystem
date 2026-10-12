@@ -4,8 +4,26 @@
              RequestedThemeVariant="Dark">
     <Application.Styles>
         <FluentTheme />
+
+        <!-- Load KZTEK tokens first so StyleInclude files can reference them -->
+        <Styles>
+            <Styles.Resources>
+                <ResourceDictionary>
+                    <ResourceDictionary.MergedDictionaries>
+                        <ResourceInclude Source="avares://KztekComponentAvalonia/Theme/KzTokens.axaml" />
+                    </ResourceDictionary.MergedDictionaries>
+                </ResourceDictionary>
+            </Styles.Resources>
+        </Styles>
+
+        <!-- KZTEK Selector-based styles -->
+        <StyleInclude Source="avares://KztekComponentAvalonia/Themes/KzDataGrid.axaml" />
+        <StyleInclude Source="avares://KztekComponentAvalonia/Themes/KzTabControl.axaml" />
+        <StyleInclude Source="avares://KztekComponentAvalonia/Themes/KzDateTimePicker.axaml" />
+        <StyleInclude Source="avares://KztekComponentAvalonia/Themes/KzMenu.axaml" />
+
         <Style Selector="GridSplitter">
-            <Setter Property="Background" Value="#27272A" />
+            <Setter Property="Background" Value="{DynamicResource ThemeNavBorderBrush}" />
             <Setter Property="CornerRadius" Value="2" />
             <Setter Property="Transitions">
                 <Transitions>
@@ -14,102 +32,106 @@
             </Setter>
         </Style>
         <Style Selector="GridSplitter:pointerover">
-            <Setter Property="Background" Value="#3B82F6" />
+            <Setter Property="Background" Value="#F05922" />
         </Style>
         <Style Selector="GridSplitter:pressed">
-            <Setter Property="Background" Value="#2563EB" />
+            <Setter Property="Background" Value="#D94817" />
         </Style>
     </Application.Styles>
 
     <Application.Resources>
         <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- KZTEK Tokens + ControlThemes -->
+                <ResourceInclude Source="avares://KztekComponentAvalonia/Themes/Default.axaml" />
+            </ResourceDictionary.MergedDictionaries>
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Dark">
-                    <!-- Surface & Backgrounds -->
-                    <SolidColorBrush x:Key="ThemeBackgroundBrush" Color="#09090B"/>
-                    <SolidColorBrush x:Key="ThemeNavBackgroundBrush" Color="#18181B"/>
-                    <SolidColorBrush x:Key="ThemeNavBorderBrush" Color="#27272A"/>
-                    <SolidColorBrush x:Key="ThemeCardBackgroundBrush" Color="#18181B"/>
-                    <SolidColorBrush x:Key="ThemeCardSecondaryBackgroundBrush" Color="#1E1E22"/>
-                    <SolidColorBrush x:Key="ThemeCardBorderBrush" Color="#27272A"/>
-                    <SolidColorBrush x:Key="ThemeStatusBarBackgroundBrush" Color="#0F172A"/>
-                    <SolidColorBrush x:Key="ThemeStatusBarBorderBrush" Color="#1E293B"/>
-                    <SolidColorBrush x:Key="ThemeStatusBarForegroundBrush" Color="#94A3B8"/>
-                    <SolidColorBrush x:Key="ThemeStatusBarMutedForegroundBrush" Color="#64748B"/>
-                    <SolidColorBrush x:Key="ThemeItemContainerBackgroundBrush" Color="#27272A"/>
-                    <SolidColorBrush x:Key="ThemeItemContainerBorderBrush" Color="#333333"/>
+                    <!-- Surface & Backgrounds (KZTEK Dark Navy Palette) -->
+                    <SolidColorBrush x:Key="ThemeBackgroundBrush" Color="#13111C"/>
+                    <SolidColorBrush x:Key="ThemeNavBackgroundBrush" Color="#1E1B2E"/>
+                    <SolidColorBrush x:Key="ThemeNavBorderBrush" Color="#2E2A45"/>
+                    <SolidColorBrush x:Key="ThemeCardBackgroundBrush" Color="#1E1B2E"/>
+                    <SolidColorBrush x:Key="ThemeCardSecondaryBackgroundBrush" Color="#26223B"/>
+                    <SolidColorBrush x:Key="ThemeCardBorderBrush" Color="#342F50"/>
+                    <SolidColorBrush x:Key="ThemeStatusBarBackgroundBrush" Color="#13111C"/>
+                    <SolidColorBrush x:Key="ThemeStatusBarBorderBrush" Color="#2E2A45"/>
+                    <SolidColorBrush x:Key="ThemeStatusBarForegroundBrush" Color="#C5C0E2"/>
+                    <SolidColorBrush x:Key="ThemeStatusBarMutedForegroundBrush" Color="#8E88B0"/>
+                    <SolidColorBrush x:Key="ThemeItemContainerBackgroundBrush" Color="#26223B"/>
+                    <SolidColorBrush x:Key="ThemeItemContainerBorderBrush" Color="#383256"/>
                     
                     <!-- Typography -->
-                    <SolidColorBrush x:Key="ThemeTextPrimaryBrush" Color="#F4F4F5"/>
-                    <SolidColorBrush x:Key="ThemeTextSecondaryBrush" Color="#A1A1AA"/>
-                    <SolidColorBrush x:Key="ThemeTextMutedBrush" Color="#71717A"/>
-                    <SolidColorBrush x:Key="ThemeBrandBrush" Color="#3B82F6"/>
+                    <SolidColorBrush x:Key="ThemeTextPrimaryBrush" Color="#F8FAFC"/>
+                    <SolidColorBrush x:Key="ThemeTextSecondaryBrush" Color="#C5C0E2"/>
+                    <SolidColorBrush x:Key="ThemeTextMutedBrush" Color="#8E88B0"/>
+                    <SolidColorBrush x:Key="ThemeBrandBrush" Color="#F05922"/>
 
                     <!-- Buttons & Controls -->
-                    <SolidColorBrush x:Key="ThemeNavButtonInactiveBackgroundBrush" Color="#27272A"/>
-                    <SolidColorBrush x:Key="ThemeNavButtonInactiveForegroundBrush" Color="#A1A1AA"/>
-                    <SolidColorBrush x:Key="ThemeButtonSecondaryBackgroundBrush" Color="#27272A"/>
-                    <SolidColorBrush x:Key="ThemeButtonSecondaryForegroundBrush" Color="#E4E4E7"/>
-                    <SolidColorBrush x:Key="ThemeButtonSecondaryBorderBrush" Color="#3F3F46"/>
-                    <SolidColorBrush x:Key="ThemeNotificationBackgroundBrush" Color="#27272A"/>
-                    <SolidColorBrush x:Key="ThemeNotificationForegroundBrush" Color="#E4E4E7"/>
+                    <SolidColorBrush x:Key="ThemeNavButtonInactiveBackgroundBrush" Color="#26223B"/>
+                    <SolidColorBrush x:Key="ThemeNavButtonInactiveForegroundBrush" Color="#C5C0E2"/>
+                    <SolidColorBrush x:Key="ThemeButtonSecondaryBackgroundBrush" Color="#2E2A45"/>
+                    <SolidColorBrush x:Key="ThemeButtonSecondaryForegroundBrush" Color="#F4F4F5"/>
+                    <SolidColorBrush x:Key="ThemeButtonSecondaryBorderBrush" Color="#443E63"/>
+                    <SolidColorBrush x:Key="ThemeNotificationBackgroundBrush" Color="#26223B"/>
+                    <SolidColorBrush x:Key="ThemeNotificationForegroundBrush" Color="#F4F4F5"/>
 
                     <!-- Video & Timeline -->
-                    <SolidColorBrush x:Key="ThemeVideoAreaBackgroundBrush" Color="#09090B"/>
-                    <SolidColorBrush x:Key="ThemeVideoCellPlaceholderBrush" Color="#18181B"/>
-                    <SolidColorBrush x:Key="ThemeTimelineBackgroundBrush" Color="#18181B"/>
-                    <SolidColorBrush x:Key="ThemeTimelineBorderBrush" Color="#27272A"/>
-                    <SolidColorBrush x:Key="ThemeTimelineTickMajorBrush" Color="#52525B"/>
-                    <SolidColorBrush x:Key="ThemeTimelineTickMinorBrush" Color="#27272A"/>
-                    <SolidColorBrush x:Key="ThemeTimelineTextBrush" Color="#71717A"/>
+                    <SolidColorBrush x:Key="ThemeVideoAreaBackgroundBrush" Color="#0A0910"/>
+                    <SolidColorBrush x:Key="ThemeVideoCellPlaceholderBrush" Color="#171424"/>
+                    <SolidColorBrush x:Key="ThemeTimelineBackgroundBrush" Color="#1E1B2E"/>
+                    <SolidColorBrush x:Key="ThemeTimelineBorderBrush" Color="#2E2A45"/>
+                    <SolidColorBrush x:Key="ThemeTimelineTickMajorBrush" Color="#645C8A"/>
+                    <SolidColorBrush x:Key="ThemeTimelineTickMinorBrush" Color="#2E2A45"/>
+                    <SolidColorBrush x:Key="ThemeTimelineTextBrush" Color="#8E88B0"/>
 
                     <!-- Badges -->
-                    <SolidColorBrush x:Key="ThemeBadgeBrandBackgroundBrush" Color="#1E3A8A"/>
-                    <SolidColorBrush x:Key="ThemeBadgeBrandForegroundBrush" Color="#93C5FD"/>
+                    <SolidColorBrush x:Key="ThemeBadgeBrandBackgroundBrush" Color="#3B231A"/>
+                    <SolidColorBrush x:Key="ThemeBadgeBrandForegroundBrush" Color="#FF8C5A"/>
                 </ResourceDictionary>
 
                 <ResourceDictionary x:Key="Light">
-                    <!-- Surface & Backgrounds -->
-                    <SolidColorBrush x:Key="ThemeBackgroundBrush" Color="#F3F4F6"/>
+                    <!-- Surface & Backgrounds (KZTEK Light Palette) -->
+                    <SolidColorBrush x:Key="ThemeBackgroundBrush" Color="#F5F3FA"/>
                     <SolidColorBrush x:Key="ThemeNavBackgroundBrush" Color="#FFFFFF"/>
-                    <SolidColorBrush x:Key="ThemeNavBorderBrush" Color="#E5E7EB"/>
+                    <SolidColorBrush x:Key="ThemeNavBorderBrush" Color="#E5E2EE"/>
                     <SolidColorBrush x:Key="ThemeCardBackgroundBrush" Color="#FFFFFF"/>
-                    <SolidColorBrush x:Key="ThemeCardSecondaryBackgroundBrush" Color="#F8FAFC"/>
-                    <SolidColorBrush x:Key="ThemeCardBorderBrush" Color="#E2E8F0"/>
-                    <SolidColorBrush x:Key="ThemeStatusBarBackgroundBrush" Color="#F1F5F9"/>
-                    <SolidColorBrush x:Key="ThemeStatusBarBorderBrush" Color="#CBD5E1"/>
-                    <SolidColorBrush x:Key="ThemeStatusBarForegroundBrush" Color="#475569"/>
-                    <SolidColorBrush x:Key="ThemeStatusBarMutedForegroundBrush" Color="#64748B"/>
-                    <SolidColorBrush x:Key="ThemeItemContainerBackgroundBrush" Color="#F1F5F9"/>
-                    <SolidColorBrush x:Key="ThemeItemContainerBorderBrush" Color="#E2E8F0"/>
+                    <SolidColorBrush x:Key="ThemeCardSecondaryBackgroundBrush" Color="#F9F8FC"/>
+                    <SolidColorBrush x:Key="ThemeCardBorderBrush" Color="#E5E2EE"/>
+                    <SolidColorBrush x:Key="ThemeStatusBarBackgroundBrush" Color="#FFFFFF"/>
+                    <SolidColorBrush x:Key="ThemeStatusBarBorderBrush" Color="#E5E2EE"/>
+                    <SolidColorBrush x:Key="ThemeStatusBarForegroundBrush" Color="#251C53"/>
+                    <SolidColorBrush x:Key="ThemeStatusBarMutedForegroundBrush" Color="#6B7280"/>
+                    <SolidColorBrush x:Key="ThemeItemContainerBackgroundBrush" Color="#F5F3FA"/>
+                    <SolidColorBrush x:Key="ThemeItemContainerBorderBrush" Color="#E5E2EE"/>
                     
                     <!-- Typography -->
-                    <SolidColorBrush x:Key="ThemeTextPrimaryBrush" Color="#111827"/>
-                    <SolidColorBrush x:Key="ThemeTextSecondaryBrush" Color="#4B5563"/>
+                    <SolidColorBrush x:Key="ThemeTextPrimaryBrush" Color="#251C53"/>
+                    <SolidColorBrush x:Key="ThemeTextSecondaryBrush" Color="#4A3F8C"/>
                     <SolidColorBrush x:Key="ThemeTextMutedBrush" Color="#6B7280"/>
-                    <SolidColorBrush x:Key="ThemeBrandBrush" Color="#2563EB"/>
+                    <SolidColorBrush x:Key="ThemeBrandBrush" Color="#F05922"/>
 
                     <!-- Buttons & Controls -->
-                    <SolidColorBrush x:Key="ThemeNavButtonInactiveBackgroundBrush" Color="#F3F4F6"/>
-                    <SolidColorBrush x:Key="ThemeNavButtonInactiveForegroundBrush" Color="#4B5563"/>
-                    <SolidColorBrush x:Key="ThemeButtonSecondaryBackgroundBrush" Color="#E5E7EB"/>
-                    <SolidColorBrush x:Key="ThemeButtonSecondaryForegroundBrush" Color="#1F2937"/>
-                    <SolidColorBrush x:Key="ThemeButtonSecondaryBorderBrush" Color="#D1D5DB"/>
-                    <SolidColorBrush x:Key="ThemeNotificationBackgroundBrush" Color="#F3F4F6"/>
-                    <SolidColorBrush x:Key="ThemeNotificationForegroundBrush" Color="#1F2937"/>
+                    <SolidColorBrush x:Key="ThemeNavButtonInactiveBackgroundBrush" Color="#F5F3FA"/>
+                    <SolidColorBrush x:Key="ThemeNavButtonInactiveForegroundBrush" Color="#4A3F8C"/>
+                    <SolidColorBrush x:Key="ThemeButtonSecondaryBackgroundBrush" Color="#ECE8F5"/>
+                    <SolidColorBrush x:Key="ThemeButtonSecondaryForegroundBrush" Color="#251C53"/>
+                    <SolidColorBrush x:Key="ThemeButtonSecondaryBorderBrush" Color="#D8D2E6"/>
+                    <SolidColorBrush x:Key="ThemeNotificationBackgroundBrush" Color="#F5F3FA"/>
+                    <SolidColorBrush x:Key="ThemeNotificationForegroundBrush" Color="#251C53"/>
 
                     <!-- Video & Timeline -->
                     <SolidColorBrush x:Key="ThemeVideoAreaBackgroundBrush" Color="#0F172A"/>
                     <SolidColorBrush x:Key="ThemeVideoCellPlaceholderBrush" Color="#1E293B"/>
                     <SolidColorBrush x:Key="ThemeTimelineBackgroundBrush" Color="#FFFFFF"/>
-                    <SolidColorBrush x:Key="ThemeTimelineBorderBrush" Color="#E5E7EB"/>
+                    <SolidColorBrush x:Key="ThemeTimelineBorderBrush" Color="#E5E2EE"/>
                     <SolidColorBrush x:Key="ThemeTimelineTickMajorBrush" Color="#94A3B8"/>
-                    <SolidColorBrush x:Key="ThemeTimelineTickMinorBrush" Color="#E2E8F0"/>
+                    <SolidColorBrush x:Key="ThemeTimelineTickMinorBrush" Color="#E5E2EE"/>
                     <SolidColorBrush x:Key="ThemeTimelineTextBrush" Color="#64748B"/>
 
                     <!-- Badges -->
-                    <SolidColorBrush x:Key="ThemeBadgeBrandBackgroundBrush" Color="#DBEAFE"/>
-                    <SolidColorBrush x:Key="ThemeBadgeBrandForegroundBrush" Color="#1E40AF"/>
+                    <SolidColorBrush x:Key="ThemeBadgeBrandBackgroundBrush" Color="#FFEDD5"/>
+                    <SolidColorBrush x:Key="ThemeBadgeBrandForegroundBrush" Color="#C2410C"/>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>

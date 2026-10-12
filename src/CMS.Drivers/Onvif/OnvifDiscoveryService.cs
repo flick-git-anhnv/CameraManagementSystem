@@ -37,40 +37,114 @@ public class OnvifDiscoveryService : IDeviceDiscoveryService
 
         byte[] requestBytes = Encoding.UTF8.GetBytes(probeMessage);
 
-        using var client = new UdpClient();
-        client.EnableBroadcast = true;
-        client.Client.ReceiveTimeout = (int)timeout.TotalMilliseconds;
+        var localIps = new List<IPAddress>();
+        try
+        {
+            foreach (var ni in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (ni.OperationalStatus != System.Net.NetworkInformation.OperationalStatus.Up) continue;
+                if (ni.NetworkInterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Loopback) continue;
 
-        var endpoint = new IPEndPoint(IPAddress.Parse(WsDiscoveryMulticastAddress), WsDiscoveryPort);
+                var ipProps = ni.GetIPProperties();
+                foreach (var unicast in ipProps.UnicastAddresses)
+                {
+                    if (unicast.Address.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        localIps.Add(unicast.Address);
+                    }
+                }
+            }
+        }
+        catch
+        {
+        }
+
+        if (localIps.Count == 0)
+        {
+            localIps.Add(IPAddress.Any);
+        }
+
+        var clients = new List<UdpClient>();
+        var multicastEndpoint = new IPEndPoint(IPAddress.Parse(WsDiscoveryMulticastAddress), WsDiscoveryPort);
+        var broadcastEndpoint = new IPEndPoint(IPAddress.Broadcast, WsDiscoveryPort);
 
         try
         {
-            await client.SendAsync(requestBytes, requestBytes.Length, endpoint);
+            foreach (var localIp in localIps)
+            {
+                try
+                {
+                    var client = new UdpClient(new IPEndPoint(localIp, 0))
+                    {
+                        EnableBroadcast = true
+                    };
+                    client.Client.ReceiveTimeout = (int)timeout.TotalMilliseconds;
+
+                    try
+                    {
+                        client.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastInterface, localIp.GetAddressBytes());
+                    }
+                    catch
+                    {
+                    }
+
+                    clients.Add(client);
+
+                    // Gửi multicast và broadcast trên từng card mạng
+                    _ = client.SendAsync(requestBytes, requestBytes.Length, multicastEndpoint);
+                    _ = client.SendAsync(requestBytes, requestBytes.Length, broadcastEndpoint);
+                }
+                catch
+                {
+                }
+            }
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             while (stopwatch.Elapsed < timeout && !cancellationToken.IsCancellationRequested)
             {
-                if (client.Available > 0)
-                {
-                    var result = await client.ReceiveAsync(cancellationToken);
-                    string responseXml = Encoding.UTF8.GetString(result.Buffer);
+                bool anyData = false;
 
-                    var parsed = ParseProbeMatch(responseXml, result.RemoteEndPoint.Address.ToString());
-                    if (parsed != null && !devices.ContainsKey(parsed.IPAddress))
+                foreach (var client in clients)
+                {
+                    try
                     {
-                        devices[parsed.IPAddress] = parsed;
+                        while (client.Available > 0)
+                        {
+                            anyData = true;
+                            var result = await client.ReceiveAsync(cancellationToken);
+                            string responseXml = Encoding.UTF8.GetString(result.Buffer);
+
+                            var parsed = ParseProbeMatch(responseXml, result.RemoteEndPoint.Address.ToString());
+                            if (parsed != null && !devices.ContainsKey(parsed.IPAddress))
+                            {
+                                devices[parsed.IPAddress] = parsed;
+                            }
+                        }
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
                     }
                 }
-                else
+
+                if (!anyData)
                 {
                     await Task.Delay(50, cancellationToken);
                 }
             }
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        finally
         {
-            // Socket timeout hoặc không có thêm phản hồi
+            foreach (var client in clients)
+            {
+                try
+                {
+                    client.Dispose();
+                }
+                catch
+                {
+                }
+            }
         }
 
         return devices.Values.ToList();
@@ -79,6 +153,11 @@ public class OnvifDiscoveryService : IDeviceDiscoveryService
     public async Task<List<DiscoveredDevice>> ScanIpRangeAsync(string startIp, string endIp, int[] ports, CancellationToken cancellationToken = default)
     {
         var discovered = new List<DiscoveredDevice>();
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return discovered;
+        }
 
         if (!IPAddress.TryParse(startIp, out var start) || !IPAddress.TryParse(endIp, out var end))
         {
@@ -155,16 +234,30 @@ public class OnvifDiscoveryService : IDeviceDiscoveryService
             }, cancellationToken));
         }
 
-        await Task.WhenAll(tasks);
+        try
+        {
+            await Task.WhenAll(tasks);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+
         return discovered;
     }
 
-    private static DiscoveredDevice? ParseProbeMatch(string responseXml, string fallbackIp)
+    internal static DiscoveredDevice? ParseProbeMatch(string responseXml, string fallbackIp)
     {
         try
         {
             // Trích xuất XAddrs (URL dịch vụ của camera)
             var xaddrsMatch = Regex.Match(responseXml, @"<[^:]*:?XAddrs[^>]*>(.*?)</[^:]*:?XAddrs>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            var scopesMatch = Regex.Match(responseXml, @"<[^:]*:?Scopes[^>]*>(.*?)</[^:]*:?Scopes>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            if (!xaddrsMatch.Success && !scopesMatch.Success && !responseXml.Contains("ProbeMatch", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
             string serviceUrl = "";
             string ip = fallbackIp;
             int port = 80;
@@ -184,17 +277,16 @@ public class OnvifDiscoveryService : IDeviceDiscoveryService
             }
 
             // Trích xuất scopes (Manufacturer, Model, Hardware...)
-            string scopes = "";
-            var scopesMatch = Regex.Match(responseXml, @"<[^:]*:?Scopes[^>]*>(.*?)</[^:]*:?Scopes>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-            if (scopesMatch.Success)
-            {
-                scopes = scopesMatch.Groups[1].Value;
-            }
+            string scopes = scopesMatch.Success ? scopesMatch.Groups[1].Value : "";
 
             var brand = DetectBrandFromScopes(scopes, responseXml);
 
-            string model = ExtractScopeValue(scopes, "hardware/") ?? ExtractScopeValue(scopes, "name/") ?? "IP Camera";
-            string manufacturer = ExtractScopeValue(scopes, "manufacturer/") ?? brand.ToString();
+            string model = ExtractScopeValue(scopes, "hardware/") 
+                           ?? ExtractScopeValue(scopes, "model/")
+                           ?? ExtractScopeValue(scopes, "name/") 
+                           ?? "IP Camera";
+            string manufacturer = ExtractScopeValue(scopes, "manufacturer/") 
+                                  ?? (brand != CameraBrand.ONVIF ? brand.ToString() : "Generic");
 
             return new DiscoveredDevice
             {
@@ -213,14 +305,14 @@ public class OnvifDiscoveryService : IDeviceDiscoveryService
         }
     }
 
-    private static CameraBrand DetectBrandFromScopes(string scopes, string rawXml)
+    internal static CameraBrand DetectBrandFromScopes(string scopes, string rawXml)
     {
         string combined = (scopes + " " + rawXml).ToLowerInvariant();
 
-        if (combined.Contains("hikvision")) return CameraBrand.Hikvision;
-        if (combined.Contains("dahua")) return CameraBrand.Dahua;
-        if (combined.Contains("uniview") || combined.Contains("uniview")) return CameraBrand.Uniview;
-        if (combined.Contains("hanwha") || combined.Contains("samsung")) return CameraBrand.Hanwha;
+        if (combined.Contains("hikvision") || combined.Contains("ezviz") || combined.Contains("hilook")) return CameraBrand.Hikvision;
+        if (combined.Contains("dahua") || combined.Contains("imou") || combined.Contains("dh-")) return CameraBrand.Dahua;
+        if (combined.Contains("uniview") || combined.Contains("unv")) return CameraBrand.Uniview;
+        if (combined.Contains("hanwha") || combined.Contains("samsung") || combined.Contains("wiseprv")) return CameraBrand.Hanwha;
         if (combined.Contains("tiandy")) return CameraBrand.Tiandy;
         if (combined.Contains("bosch")) return CameraBrand.Bosch;
         if (combined.Contains("pelco")) return CameraBrand.Pelco;
@@ -230,9 +322,9 @@ public class OnvifDiscoveryService : IDeviceDiscoveryService
         return CameraBrand.ONVIF;
     }
 
-    private static string? ExtractScopeValue(string scopes, string prefix)
+    internal static string? ExtractScopeValue(string scopes, string prefix)
     {
-        var match = Regex.Match(scopes, @"onvif://www\.onvif\.org/" + prefix + @"([^\s]+)", RegexOptions.IgnoreCase);
+        var match = Regex.Match(scopes, @"onvif://www\.onvif\.org/" + prefix + @"([^\s""]+)", RegexOptions.IgnoreCase);
         if (match.Success)
         {
             return Uri.UnescapeDataString(match.Groups[1].Value);

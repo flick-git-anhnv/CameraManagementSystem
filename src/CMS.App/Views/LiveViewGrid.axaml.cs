@@ -166,8 +166,8 @@ public partial class LiveViewGrid : UserControl
 
     private void UpdatePresetButtonStyles()
     {
-        var primaryBrush = Brush.Parse("#2563EB");
-        var secondaryBg = this.FindResource("ThemeButtonSecondaryBackgroundBrush") as IBrush ?? Brush.Parse("#27272A");
+        var primaryBrush = Brush.Parse("#F05922");
+        var secondaryBg = this.FindResource("ThemeButtonSecondaryBackgroundBrush") as IBrush ?? Brush.Parse("#26223B");
         var secondaryFg = this.FindResource("ThemeButtonSecondaryForegroundBrush") as IBrush ?? Brush.Parse("#E4E4E7");
 
         void SetBtnStyle(Button btn, bool isActive)
@@ -273,7 +273,7 @@ public partial class LiveViewGrid : UserControl
             }
         }
 
-        BtnRecordAll.Content = anyRecording ? "⏺️ Record All" : "⏹️ Stop Record";
+        BtnRecordAll.Content = anyRecording ? "⏺️ Ghi tất cả" : "⏹️ Dừng ghi";
         BtnRecordAll.Background = anyRecording ? Avalonia.Media.Brush.Parse("#DC2626") : Avalonia.Media.Brushes.ForestGreen;
         CameraStateChanged?.Invoke(this, EventArgs.Empty);
     }

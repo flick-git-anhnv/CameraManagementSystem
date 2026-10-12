@@ -21,10 +21,10 @@ public partial class EMapViewModel : ObservableObject
     private CameraDevice? _selectedCamera;
 
     [ObservableProperty]
-    private string _mapTitle = "Zone 1 - Main Headquarters Ground Floor";
+    private string _mapTitle = "Khu vực 1 - Mặt bằng Tầng 1 Tòa nhà Trụ sở";
 
     [ObservableProperty]
-    private string _statusMessage = "Click on canvas to place selected camera. Click placed camera to preview.";
+    private string _statusMessage = "Chọn camera trong danh sách, sau đó nhấn vào sơ đồ mặt bằng để gán vị trí. Nhấn vào camera đã đặt để xem trực tiếp.";
 
     public EMapViewModel(ICameraRepository? cameraRepo = null)
     {
@@ -71,7 +71,7 @@ public partial class EMapViewModel : ObservableObject
     {
         if (SelectedCamera == null)
         {
-            StatusMessage = "Please select a camera from the list first before placing on map.";
+            StatusMessage = "Vui lòng chọn camera trong danh sách trước khi đặt lên bản đồ.";
             return;
         }
 
@@ -93,6 +93,6 @@ public partial class EMapViewModel : ObservableObject
             });
         }
 
-        StatusMessage = $"Placed {SelectedCamera.Name} at ({xPercent:F0}%, {yPercent:F0}%) on map.";
+        StatusMessage = $"Đã gắn {SelectedCamera.Name} tại tọa độ ({xPercent:F0}%, {yPercent:F0}%) trên bản đồ.";
     }
 }

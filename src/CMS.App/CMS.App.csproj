@@ -25,5 +25,6 @@
     <ProjectReference Include="..\CMS.MediaServer\CMS.MediaServer.csproj" />
     <ProjectReference Include="..\CMS.AI\CMS.AI.csproj" />
     <ProjectReference Include="..\..\libs\Kztek.Cameras.Avalonia\Kztek.Cameras.Avalonia.csproj" />
+    <ProjectReference Include="..\..\libs\KztekComponentAvalonia\KztekComponentAvalonia.csproj" />
   </ItemGroup>
 </Project>

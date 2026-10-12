@@ -2,57 +2,58 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CMS.App.ViewModels"
              xmlns:entities="using:CMS.Core.Entities"
+             xmlns:kz="clr-namespace:KztekComponentAvalonia.Controls;assembly=KztekComponentAvalonia"
              x:Class="CMS.App.Views.StorageConfigView"
              x:DataType="vm:StorageConfigViewModel">
 
     <ScrollViewer Margin="16">
         <StackPanel Spacing="16" MaxWidth="1100">
-            <!-- Header -->
-            <Border Background="#18181B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="6" Padding="16,12">
+            <!-- ── Top Header ─────────────────────────────────────────────── -->
+            <Border Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="18,14">
                 <Grid ColumnDefinitions="*, Auto">
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="STORAGE &amp; RECORDING CONFIGURATION" FontSize="16" FontWeight="Bold" Foreground="#3B82F6"/>
-                        <TextBlock Text="Manage disk drives, storage quota, FIFO auto-overwrite, and per-camera recording schedules." FontSize="12" Foreground="#888888"/>
+                    <StackPanel Grid.Column="0" Spacing="2">
+                        <TextBlock Text="CẤU HÌNH LƯU TRỮ &amp; GHI HÌNH" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ThemeBrandBrush}"/>
+                        <TextBlock Text="Quản lý ổ đĩa lưu trữ, phân vùng dung lượng, cơ chế tự động ghi đè FIFO và thiết lập lịch ghi hình từng camera." FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
                     </StackPanel>
-                    <Button Grid.Column="1" Content="💾 Save Storage Settings" 
-                            Command="{Binding SaveSettingsCommand}"
-                            Background="#059669" Foreground="White" FontWeight="Bold" Padding="16,8"/>
+                    <kz:KzButton Grid.Column="1" Content="💾 Lưu cài đặt lưu trữ" 
+                                 Command="{Binding SaveSettingsCommand}"
+                                 Variant="Primary" KzSize="Md"/>
                 </Grid>
             </Border>
 
-            <!-- Card 1: Disks Overview & Quick Select -->
-            <Border Background="#18181B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="6" Padding="16">
-                <StackPanel Spacing="10">
+            <!-- ── Card 1: Disks Overview & Quick Select ─────────────────── -->
+            <Border Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="18">
+                <StackPanel Spacing="12">
                     <Grid ColumnDefinitions="*, Auto">
-                        <TextBlock Grid.Column="0" Text="LOCAL STORAGE DRIVES" FontWeight="Bold" FontSize="13" Foreground="#FAFAFA"/>
-                        <TextBlock Grid.Column="1" Text="{Binding RecordedSizeFormatted, StringFormat='Total Video Recorded: {0}'}" FontSize="12" Foreground="#10B981" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="0" Text="Ổ ĐĨA LƯU TRỮ CỤC BỘ" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding RecordedSizeFormatted, StringFormat='Tổng dung lượng video đã ghi: {0}'}" FontSize="12" Foreground="#10B981" FontWeight="SemiBold"/>
                     </Grid>
 
                     <!-- Drive cards list -->
                     <ItemsControl ItemsSource="{Binding AvailableDrives}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:DriveDisplayInfo">
-                                <Border Background="#222225" CornerRadius="4" Padding="12,10" Margin="0,3" BorderBrush="#2E2E33" BorderThickness="1">
-                                    <Grid ColumnDefinitions="Auto, *, 180, Auto">
+                                <Border Background="{DynamicResource ThemeItemContainerBackgroundBrush}" CornerRadius="6" Padding="14,12" Margin="0,3" BorderBrush="{DynamicResource ThemeItemContainerBorderBrush}" BorderThickness="1">
+                                    <Grid ColumnDefinitions="Auto, *, 220, Auto">
                                         <!-- Drive Icon -->
-                                        <TextBlock Grid.Column="0" Text="🖴" FontSize="24" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                        <TextBlock Grid.Column="0" Text="🖴" FontSize="26" VerticalAlignment="Center" Margin="0,0,14,0"/>
 
                                         <!-- Drive info -->
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding DisplayText}" FontWeight="SemiBold" Foreground="#FFFFFF" FontSize="13"/>
-                                            <TextBlock Text="Local Storage Partition" FontSize="11" Foreground="#71717A"/>
+                                            <TextBlock Text="{Binding DisplayText}" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="13"/>
+                                            <TextBlock Text="Phân vùng lưu trữ hệ điều hành" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}"/>
                                         </StackPanel>
 
                                         <!-- Progress Bar -->
-                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="12,0">
-                                            <ProgressBar Value="{Binding UsedPercent}" Maximum="100" Height="8" CornerRadius="3" Foreground="#2563EB" Background="#3F3F46"/>
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="14,0">
+                                            <ProgressBar Value="{Binding UsedPercent}" Maximum="100" Height="8" CornerRadius="4" Foreground="#F05922" Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}"/>
                                         </StackPanel>
 
                                         <!-- Select Button -->
-                                        <Button Grid.Column="3" Content="Use This Drive" 
-                                                Command="{Binding $parent[UserControl].((vm:StorageConfigViewModel)DataContext).SelectDriveAsStorageCommand}"
-                                                CommandParameter="{Binding}"
-                                                Background="#2563EB" Foreground="White" Padding="10,4" FontSize="11" VerticalAlignment="Center"/>
+                                        <kz:KzButton Grid.Column="3" Content="Sử dụng ổ này" 
+                                                     Command="{Binding $parent[UserControl].((vm:StorageConfigViewModel)DataContext).SelectDriveAsStorageCommand}"
+                                                     CommandParameter="{Binding}"
+                                                     Variant="Secondary" KzSize="Sm" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -61,38 +62,38 @@
                 </StackPanel>
             </Border>
 
-            <!-- Card 2: General Storage Policy -->
-            <Border Background="#18181B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="6" Padding="16">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="RECORDING POLICIES &amp; RETENTION" FontWeight="Bold" FontSize="13" Foreground="#FAFAFA"/>
+            <!-- ── Card 2: General Storage Policy ────────────────────────── -->
+            <Border Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="18">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="CHÍNH SÁCH LƯU TRỮ &amp; VÒNG ĐỜI BẢN GHI" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}"/>
 
                     <!-- Root Storage Path -->
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Storage Directory Path" FontSize="12" Foreground="#A1A1AA"/>
-                        <TextBox Text="{Binding RootStoragePath}" PlaceholderText="e.g. D:\CMS_Recordings"/>
+                        <TextBlock Text="Đường dẫn thư mục lưu trữ video:" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                        <kz:KzTextBox Text="{Binding RootStoragePath}" PlaceholderText="Ví dụ: D:\CMS_Recordings" KzSize="Md"/>
                     </StackPanel>
 
                     <!-- Parameters Grid -->
                     <Grid ColumnDefinitions="*, *, *">
                         <!-- Segment Duration -->
-                        <StackPanel Grid.Column="0" Margin="0,0,8,0" Spacing="4">
-                            <TextBlock Text="Video Segment Duration" FontSize="12" Foreground="#A1A1AA"/>
+                        <StackPanel Grid.Column="0" Margin="0,0,10,0" Spacing="4">
+                            <TextBlock Text="Thời lượng mỗi đoạn video:" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
                             <ComboBox ItemsSource="{Binding AvailableSegmentDurations}" SelectedItem="{Binding SegmentDurationMinutes}" HorizontalAlignment="Stretch">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding StringFormat='{}{0} Minutes / File'}"/>
+                                        <TextBlock Text="{Binding StringFormat='{}{0} Phút / Tệp'}"/>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
                         </StackPanel>
 
                         <!-- Min Free Space -->
-                        <StackPanel Grid.Column="1" Margin="0,0,8,0" Spacing="4">
-                            <TextBlock Text="Min Free Disk Space (Trigger Overwrite)" FontSize="12" Foreground="#A1A1AA"/>
+                        <StackPanel Grid.Column="1" Margin="0,0,10,0" Spacing="4">
+                            <TextBlock Text="Dung lượng trống tối thiểu (Ghi đè):" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
                             <ComboBox ItemsSource="{Binding AvailableMinFreeSpaces}" SelectedItem="{Binding MinFreeSpaceGigabytes}" HorizontalAlignment="Stretch">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding StringFormat='{}{0} GB minimum free'}"/>
+                                        <TextBlock Text="{Binding StringFormat='Tối thiểu {0} GB trống'}"/>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
@@ -100,11 +101,11 @@
 
                         <!-- Retention Days -->
                         <StackPanel Grid.Column="2" Spacing="4">
-                            <TextBlock Text="Max Retention Period" FontSize="12" Foreground="#A1A1AA"/>
+                            <TextBlock Text="Thời gian lưu trữ tối đa:" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
                             <ComboBox ItemsSource="{Binding AvailableRetentionDays}" SelectedItem="{Binding RetentionDays}" HorizontalAlignment="Stretch">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding StringFormat='{}{0} Days'}"/>
+                                        <TextBlock Text="{Binding StringFormat='{}{0} Ngày'}"/>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
@@ -113,43 +114,43 @@
 
                     <!-- Auto Overwrite Switch -->
                     <CheckBox IsChecked="{Binding AutoOverwriteOldest}" Margin="0,4,0,0">
-                        <StackPanel>
-                            <TextBlock Text="Enable FIFO Automatic Overwrite (Recommended)" FontWeight="SemiBold" Foreground="#FFFFFF"/>
-                            <TextBlock Text="Automatically delete the oldest video recordings when free disk space falls below threshold." FontSize="11" Foreground="#71717A"/>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Kích hoạt tự động ghi đè theo cơ chế FIFO (Khuyến nghị)" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}"/>
+                            <TextBlock Text="Hệ thống tự động xóa bản ghi video cũ nhất khi dung lượng ổ đĩa giảm xuống dưới ngưỡng an toàn đã đặt." FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}"/>
                         </StackPanel>
                     </CheckBox>
                 </StackPanel>
             </Border>
 
-            <!-- Card 3: Camera Recording Policy Table -->
-            <Border Background="#18181B" BorderBrush="#27272A" BorderThickness="1" CornerRadius="6" Padding="16">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="CAMERA RECORDING SCHEDULE &amp; STREAM SETTINGS" FontWeight="Bold" FontSize="13" Foreground="#FAFAFA"/>
+            <!-- ── Card 3: Camera Recording Policy Table ─────────────────── -->
+            <Border Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="18">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="LỊCH TRÌNH GHI HÌNH &amp; THIẾT LẬP LUỒNG CAMERA" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}"/>
 
                     <!-- Cameras Table -->
-                    <Border Background="#121214" CornerRadius="4" BorderBrush="#27272A" BorderThickness="1" Padding="8">
+                    <Border Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}" CornerRadius="6" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" Padding="10">
                         <ItemsControl ItemsSource="{Binding Cameras}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="entities:CameraDevice">
-                                    <Border Background="#1E1E22" CornerRadius="4" Padding="10,8" Margin="0,2">
-                                        <Grid ColumnDefinitions="Auto, *, 200, 160">
+                                    <Border Background="{DynamicResource ThemeItemContainerBackgroundBrush}" CornerRadius="6" Padding="12,10" Margin="0,3">
+                                        <Grid ColumnDefinitions="Auto, *, 220, 200">
                                             <!-- Camera Icon & Info -->
-                                            <TextBlock Grid.Column="0" Text="📹" FontSize="18" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                            <TextBlock Grid.Column="0" Text="📹" FontSize="20" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="#FAFAFA"/>
-                                                <TextBlock Text="{Binding IpAddress, StringFormat='IP: {0}'}" FontSize="11" Foreground="#71717A"/>
+                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}"/>
+                                                <TextBlock Text="{Binding IpAddress, StringFormat='IP: {0}'}" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
                                             </StackPanel>
 
                                             <!-- Recording Mode Selector -->
-                                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,12,0">
-                                                <TextBlock Text="Recording Mode" FontSize="10" Foreground="#A1A1AA" Margin="0,0,0,2"/>
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,14,0">
+                                                <TextBlock Text="Chế độ ghi hình:" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}" Margin="0,0,0,2"/>
                                                 <ComboBox ItemsSource="{Binding $parent[UserControl].((vm:StorageConfigViewModel)DataContext).AvailableRecordModes}"
                                                           SelectedItem="{Binding RecordMode}" HorizontalAlignment="Stretch"/>
                                             </StackPanel>
 
                                             <!-- Stream Selection -->
                                             <StackPanel Grid.Column="3" VerticalAlignment="Center">
-                                                <CheckBox Content="Record Sub-Stream (Save space)" IsChecked="{Binding RecordSubStream}" FontSize="11"/>
+                                                <CheckBox Content="Ghi luồng phụ (Tiết kiệm dung lượng)" IsChecked="{Binding RecordSubStream}" FontSize="12"/>
                                             </StackPanel>
                                         </Grid>
                                     </Border>
@@ -159,8 +160,8 @@
                     </Border>
 
                     <!-- Status Notification Banner -->
-                    <Border Background="#252528" CornerRadius="4" Padding="10,8" Margin="0,6,0,0" IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                        <TextBlock Text="{Binding StatusMessage}" Foreground="#E4E4E7" FontSize="12"/>
+                    <Border Background="{DynamicResource ThemeNotificationBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,8,0,0" IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource ThemeNotificationForegroundBrush}" FontSize="12"/>
                     </Border>
                 </StackPanel>
             </Border>

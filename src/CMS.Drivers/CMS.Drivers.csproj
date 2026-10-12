@@ -12,4 +12,8 @@
     <ProjectReference Include="..\..\libs\Kztek.Cameras.Avalonia\Kztek.Cameras.Avalonia.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="CMS.Tests" />
+  </ItemGroup>
+
 </Project>
