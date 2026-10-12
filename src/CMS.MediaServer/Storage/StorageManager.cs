@@ -59,6 +59,11 @@ public class StorageManager : IStorageEngine, IDisposable
         return _recorders.TryGetValue(cameraId, out var recorder) && recorder.IsRecording;
     }
 
+    public IEnumerable<string> GetActiveRecordingCameraIds()
+    {
+        return _recorders.Where(kv => kv.Value.IsRecording).Select(kv => kv.Key).ToList();
+    }
+
     public async Task StopAllRecordingAsync()
     {
         var tasks = _recorders.Values.Select(r => r.StopAsync());

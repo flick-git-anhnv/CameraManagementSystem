@@ -46,6 +46,8 @@ public partial class TimelineControl : UserControl
         TimelineCanvas.PointerMoved += OnCanvasPointerMoved;
         TimelineCanvas.PointerReleased += OnCanvasPointerReleased;
         this.SizeChanged += (_, _) => RedrawTimeline();
+        this.ActualThemeVariantChanged += (_, _) => RedrawTimeline();
+        CMS.App.Services.ThemeService.Instance.ThemeChanged += (_, _) => RedrawTimeline();
     }
 
     public void SetSegments(IEnumerable<VideoSegment> segments)
@@ -62,6 +64,10 @@ public partial class TimelineControl : UserControl
 
         if (width <= 0 || height <= 0) return;
 
+        IBrush majorTickBrush = this.TryFindResource("ThemeTimelineTickMajorBrush", out var majorRes) && majorRes is IBrush mb ? mb : Brush.Parse("#52525B");
+        IBrush minorTickBrush = this.TryFindResource("ThemeTimelineTickMinorBrush", out var minorRes) && minorRes is IBrush mnb ? mnb : Brush.Parse("#27272A");
+        IBrush textBrush = this.TryFindResource("ThemeTimelineTextBrush", out var textRes) && textRes is IBrush tb ? tb : Brush.Parse("#71717A");
+
         // 1. Vẽ các vạch giờ (0h - 24h)
         for (int h = 0; h <= 24; h++)
         {
@@ -71,7 +77,7 @@ public partial class TimelineControl : UserControl
             {
                 StartPoint = new Point(x, 0),
                 EndPoint = new Point(x, h % 6 == 0 ? height : height * 0.4),
-                Stroke = h % 6 == 0 ? Brush.Parse("#52525B") : Brush.Parse("#27272A"),
+                Stroke = h % 6 == 0 ? majorTickBrush : minorTickBrush,
                 StrokeThickness = 1
             };
             TimelineCanvas.Children.Add(hourLine);
@@ -82,7 +88,7 @@ public partial class TimelineControl : UserControl
                 {
                     Text = $"{h:00}:00",
                     FontSize = 10,
-                    Foreground = Brush.Parse("#71717A")
+                    Foreground = textBrush
                 };
                 Canvas.SetLeft(label, x + 3);
                 Canvas.SetTop(label, 4);

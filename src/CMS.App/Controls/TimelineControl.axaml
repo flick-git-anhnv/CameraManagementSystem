@@ -3,10 +3,10 @@
              x:Class="CMS.App.Controls.TimelineControl"
              Height="70">
 
-    <Border Background="#121214" BorderBrush="#27272A" BorderThickness="0,1,0,0">
+    <Border Background="{DynamicResource ThemeTimelineBackgroundBrush}" BorderBrush="{DynamicResource ThemeTimelineBorderBrush}" BorderThickness="0,1,0,0">
         <Grid>
             <!-- Canvas vẽ các dải màu video đã ghi và vạch giờ -->
-            <Canvas x:Name="TimelineCanvas" Background="#18181B" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            <Canvas x:Name="TimelineCanvas" Background="{DynamicResource ThemeTimelineBackgroundBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
             <!-- Con trỏ thời gian (Playhead Cursor) -->
             <Canvas x:Name="PlayheadCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsHitTestVisible="False">

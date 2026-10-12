@@ -21,6 +21,8 @@ public partial class VideoCellView : UserControl
 
     public event EventHandler? DoubleClicked;
     public event EventHandler? Closed;
+    public event EventHandler? PlaybackStateChanged;
+    public event EventHandler? RecordingStateChanged;
 
     public CameraDevice? CurrentCamera => _camera;
     public bool IsPlaying => _isPlaying;
@@ -36,6 +38,30 @@ public partial class VideoCellView : UserControl
         BtnRecord.Click += OnBtnRecordClick;
         this.DoubleTapped += OnCellDoubleTapped;
         this.Unloaded += OnCellUnloaded;
+    }
+
+    public void SetSelected(bool isSelected)
+    {
+        if (CellBorder != null)
+        {
+            if (isSelected)
+            {
+                CellBorder.BorderBrush = Brush.Parse("#2563EB");
+                CellBorder.BorderThickness = new Avalonia.Thickness(2);
+            }
+            else
+            {
+                if (this.TryFindResource("ThemeCardBorderBrush", out var res) && res is IBrush b)
+                {
+                    CellBorder.BorderBrush = b;
+                }
+                else
+                {
+                    CellBorder.BorderBrush = Brush.Parse("#27272A");
+                }
+                CellBorder.BorderThickness = new Avalonia.Thickness(1);
+            }
+        }
     }
 
     public void PlayCamera(CameraDevice camera, bool useMainStream = false)
@@ -64,6 +90,7 @@ public partial class VideoCellView : UserControl
 
             Player.Start();
             _isPlaying = true;
+            PlaybackStateChanged?.Invoke(this, EventArgs.Empty);
 
             PlaceholderGrid.IsVisible = false;
             StatusDot.Background = Brushes.LimeGreen;
@@ -97,9 +124,14 @@ public partial class VideoCellView : UserControl
 
     private void UpdateRecordingState(bool recording)
     {
+        bool changed = (_isRecording != recording);
         _isRecording = recording;
         RecBadge.IsVisible = recording;
         BtnRecord.Background = recording ? Brushes.Crimson : Brush.Parse("#3F3F46");
+        if (changed)
+        {
+            RecordingStateChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     public void ToggleStreamResolution()
@@ -110,6 +142,7 @@ public partial class VideoCellView : UserControl
 
     public void StopCamera()
     {
+        bool wasPlaying = _isPlaying;
         if (_isPlaying)
         {
             try
@@ -127,6 +160,11 @@ public partial class VideoCellView : UserControl
         PlaceholderGrid.IsVisible = true;
         StatusDot.Background = Brushes.Crimson;
         TxtCameraName.Text = "Empty Slot";
+
+        if (wasPlaying)
+        {
+            PlaybackStateChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     private void OnBtnCloseClick(object? sender, RoutedEventArgs e)

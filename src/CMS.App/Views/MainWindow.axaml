@@ -7,18 +7,43 @@
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding Title}"
         Width="1380" Height="840"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource ThemeBackgroundBrush}">
+
+    <Window.Styles>
+        <Style Selector="Button.nav-tab">
+            <Setter Property="Background" Value="{DynamicResource ThemeNavButtonInactiveBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource ThemeNavButtonInactiveForegroundBrush}"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.nav-tab:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ThemeButtonSecondaryBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.nav-tab.active">
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.nav-tab.active:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </Window.Styles>
 
     <Grid RowDefinitions="Auto, *, Auto">
         <!-- Top Navigation Bar -->
-        <Border Grid.Row="0" Background="#18181B" Padding="14,10" BorderBrush="#27272A" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" Background="{DynamicResource ThemeNavBackgroundBrush}" Padding="14,10" BorderBrush="{DynamicResource ThemeNavBorderBrush}" BorderThickness="0,0,0,1">
             <Grid ColumnDefinitions="Auto, *, Auto">
                 <!-- Brand Logo & Title -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                     <Border Background="#2563EB" CornerRadius="4" Padding="6,3">
                         <TextBlock Text="KZTEK" FontWeight="Bold" FontSize="13" Foreground="White"/>
                     </Border>
-                    <TextBlock Text="Camera Management System" FontWeight="SemiBold" FontSize="15" Foreground="#F4F4F5" VerticalAlignment="Center"/>
+                    <TextBlock Text="Camera Management System" FontWeight="SemiBold" FontSize="15" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- Navigation Tabs -->
@@ -26,36 +51,64 @@
                     <Button Content="📺 Live View" 
                             Command="{Binding NavigateCommand}" 
                             CommandParameter="{x:Static vm:NavigationPage.LiveView}"
-                            Background="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.LiveView}}"
-                            Foreground="White" Padding="14,7" CornerRadius="4"/>
+                            Classes="nav-tab"
+                            Classes.active="{Binding IsLiveViewActive}"/>
 
                     <Button Content="⏪ Playback" 
                             Command="{Binding NavigateCommand}" 
                             CommandParameter="{x:Static vm:NavigationPage.Playback}"
-                            Background="#27272A" Foreground="#A1A1AA" Padding="14,7" CornerRadius="4"/>
+                            Classes="nav-tab"
+                            Classes.active="{Binding IsPlaybackActive}"/>
 
                     <Button Content="🤖 AI Analytics" 
                             Command="{Binding NavigateCommand}" 
                             CommandParameter="{x:Static vm:NavigationPage.AiAnalytics}"
-                            Background="#27272A" Foreground="#A1A1AA" Padding="14,7" CornerRadius="4"/>
+                            Classes="nav-tab"
+                            Classes.active="{Binding IsAiAnalyticsActive}"/>
 
                     <Button Content="🗺️ E-Map" 
                             Command="{Binding NavigateCommand}" 
                             CommandParameter="{x:Static vm:NavigationPage.EMap}"
-                            Background="#27272A" Foreground="#A1A1AA" Padding="14,7" CornerRadius="4"/>
+                            Classes="nav-tab"
+                            Classes.active="{Binding IsEMapActive}"/>
 
                     <Button Content="⚙️ Device Management" 
                             Command="{Binding NavigateCommand}" 
                             CommandParameter="{x:Static vm:NavigationPage.DeviceManagement}"
-                            Background="#27272A" Foreground="White" Padding="14,7" CornerRadius="4"/>
+                            Classes="nav-tab"
+                            Classes.active="{Binding IsDeviceManagementActive}"/>
+
+                    <Button Content="💾 Storage" 
+                            Command="{Binding NavigateCommand}" 
+                            CommandParameter="{x:Static vm:NavigationPage.StorageSettings}"
+                            Classes="nav-tab"
+                            Classes.active="{Binding IsStorageSettingsActive}"/>
                 </StackPanel>
 
-                <!-- Right Status -->
+                <!-- Right Status & Theme Switcher -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                     <Border Background="#10B981" CornerRadius="10" Width="8" Height="8" VerticalAlignment="Center"/>
-                    <TextBlock Text="VMS Server Online" FontSize="12" Foreground="#A1A1AA" VerticalAlignment="Center"/>
-                    <TextBlock Text="•" Foreground="#52525B" VerticalAlignment="Center"/>
-                    <TextBlock Text="👤 Administrator" FontSize="12" Foreground="#E4E4E7" VerticalAlignment="Center"/>
+                    <TextBlock Text="VMS Server Online" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="•" Foreground="{DynamicResource ThemeTextMutedBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="👤 Administrator" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="•" Foreground="{DynamicResource ThemeTextMutedBrush}" VerticalAlignment="Center"/>
+
+                    <!-- Theme Toggle Button -->
+                    <Button Command="{Binding ToggleThemeCommand}"
+                            ToolTip.Tip="Chuyển đổi giao diện Sáng / Tối (Dark / Light Theme)"
+                            Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}"
+                            Foreground="{DynamicResource ThemeButtonSecondaryForegroundBrush}"
+                            BorderBrush="{DynamicResource ThemeButtonSecondaryBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="16"
+                            Padding="10,4"
+                            Cursor="Hand"
+                            VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="{Binding ThemeIcon}" FontSize="13" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding ThemeName}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
@@ -63,23 +116,29 @@
         <!-- Main Content Area -->
         <Grid Grid.Row="1">
             <!-- 1. Live View Page -->
-            <Grid ColumnDefinitions="280, *" IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.LiveView}}">
+            <Grid IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.LiveView}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="280" MinWidth="180" MaxWidth="500"/>
+                    <ColumnDefinition Width="6"/>
+                    <ColumnDefinition Width="*" MinWidth="400"/>
+                </Grid.ColumnDefinitions>
+
                 <!-- Left Sidebar: Device Tree -->
-                <Border Grid.Column="0" Background="#18181B" BorderBrush="#27272A" BorderThickness="0,0,1,0" Padding="12">
+                <Border Grid.Column="0" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="0,0,1,0" Padding="12">
                     <Grid RowDefinitions="Auto, Auto, *">
-                        <TextBlock Grid.Row="0" Text="CAMERAS (DOUBLE CLICK TO PLAY)" FontWeight="Bold" FontSize="11" Foreground="#71717A" Margin="0,0,0,8"/>
+                        <TextBlock Grid.Row="0" Text="CAMERAS (DOUBLE CLICK TO PLAY)" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}" Margin="0,0,0,8"/>
                         <TextBox Grid.Row="1" PlaceholderText="Search camera..." Margin="0,0,0,10"/>
                         
                         <ScrollViewer Grid.Row="2">
                             <ListBox x:Name="CameraListBox" ItemsSource="{Binding ConfiguredCameras}" Background="Transparent">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="entities:CameraDevice">
-                                        <Border Background="#27272A" CornerRadius="4" Padding="10,8" Margin="0,2">
+                                        <Border Background="{DynamicResource ThemeItemContainerBackgroundBrush}" BorderBrush="{DynamicResource ThemeItemContainerBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10,8" Margin="0,2">
                                             <Grid ColumnDefinitions="Auto, *, Auto">
                                                 <Border Grid.Column="0" Background="#10B981" CornerRadius="4" Width="8" Height="8" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                                 <StackPanel Grid.Column="1">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="#FAFAFA" FontSize="13"/>
-                                                    <TextBlock Text="{Binding IpAddress}" FontSize="11" Foreground="#71717A"/>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="13"/>
+                                                    <TextBlock Text="{Binding IpAddress}" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
                                                 </StackPanel>
                                                 <TextBlock Grid.Column="2" Text="▶" Foreground="#3B82F6" VerticalAlignment="Center"/>
                                             </Grid>
@@ -91,8 +150,11 @@
                     </Grid>
                 </Border>
 
+                <!-- Vertical Splitter between Sidebar and Video Grid -->
+                <GridSplitter Grid.Column="1" Width="6" ResizeDirection="Columns" HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
+
                 <!-- Right Video Grid Area -->
-                <Grid Grid.Column="1" Background="#09090B">
+                <Grid Grid.Column="2" Background="{DynamicResource ThemeVideoAreaBackgroundBrush}">
                     <views:LiveViewGrid x:Name="LiveGrid" Margin="4"/>
                 </Grid>
             </Grid>
@@ -107,16 +169,21 @@
                 <views:PlaybackView DataContext="{Binding PlaybackVM}"/>
             </Border>
 
+            <!-- 4. Storage Configuration Page -->
+            <Border IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.StorageSettings}}">
+                <views:StorageConfigView DataContext="{Binding StorageConfigVM}"/>
+            </Border>
+
             <Grid IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.AiAnalytics}}">
-                <TextBlock Text="🤖 Edge AI Analytics (Vehicles &amp; Persons) will be loaded here (Milestone 7 &amp; 8)" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#71717A" FontSize="16"/>
+                <TextBlock Text="🤖 Edge AI Analytics (Vehicles &amp; Persons) will be loaded here (Milestone 7 &amp; 8)" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="16"/>
             </Grid>
         </Grid>
 
         <!-- Bottom Status Bar -->
-        <Border Grid.Row="2" Background="#0F172A" Padding="14,4" BorderBrush="#1E293B" BorderThickness="0,1,0,0">
+        <Border Grid.Row="2" Background="{DynamicResource ThemeStatusBarBackgroundBrush}" Padding="14,4" BorderBrush="{DynamicResource ThemeStatusBarBorderBrush}" BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="Auto, *, Auto">
-                <TextBlock Grid.Column="0" Text="{Binding SystemStatus}" Foreground="#94A3B8" FontSize="12"/>
-                <TextBlock Grid.Column="2" Text="KZTEK VMS Core v1.0.0 • .NET 8 Multiplatform" Foreground="#64748B" FontSize="12"/>
+                <TextBlock Grid.Column="0" Text="{Binding SystemStatus}" Foreground="{DynamicResource ThemeStatusBarForegroundBrush}" FontSize="12"/>
+                <TextBlock Grid.Column="2" Text="KZTEK VMS Core v1.0.0 • .NET 8 Multiplatform" Foreground="{DynamicResource ThemeStatusBarMutedForegroundBrush}" FontSize="12"/>
             </Grid>
         </Border>
     </Grid>
