@@ -57,6 +57,11 @@ public abstract class BaseCameraDriver : ICameraDriver
         return Task.FromResult(false);
     }
 
+    public virtual Task<bool> PresetAsync(CameraDevice camera, string action, int presetIndex, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(false);
+    }
+
     public virtual Task<byte[]?> GetSnapshotAsync(CameraDevice camera, CancellationToken cancellationToken = default)
     {
         return Task.FromResult<byte[]?>(null);

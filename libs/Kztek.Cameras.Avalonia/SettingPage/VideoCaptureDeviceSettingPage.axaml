@@ -1,0 +1,209 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:kz="clr-namespace:KztekComponentAvalonia.Controls;assembly=KztekComponentAvalonia"
+             xmlns:local="using:Kztek.Cameras"
+             x:Class="Kztek.Cameras.VideoCaptureDeviceSettingPage"
+             x:DataType="local:VideoCaptureDeviceSettingPageViewModel"
+             MinWidth="510" MinHeight="290">
+
+    <!--
+        VideoCaptureDeviceSettingPage (Avalonia port)
+        Source: SettingPage/VideoCaptureDeviceSettingPage.cs + .Designer.cs (WinForms)
+        Key changes:
+          - AForge FilterInfoCollection device enumeration was already commented in WinForms source
+            → cbxDevice bound to VM.DeviceItems (ObservableCollection, always empty in practice)
+          - chkUsingDeinterlaceFilter_CheckedChanged → IsEnabled binding on
+            cbxDeinterlaceFilterName + btnFindFilter (parity with ADR §6.1 E21)
+          - btnFindFilter_Click (MessageBox.Show) → FindFilterCommand + MsBox.Avalonia (ADR §6.1)
+        DataContext = VideoCaptureDeviceSettingPageViewModel (set in code-behind constructor)
+    -->
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <!-- Row 0: Video Device label + cbxDevice -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 1: Kênh label + cbxChanel -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 2: Desired Frame Rate label + cbxDesiredFrameRate -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 3: Desired Frame Size label + cbxDesiredFrameSize -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 4: chkUsingDeinterlaceFilter + btnFindFilter -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 5: Name label + cbxDeinterlaceFilterName (IsEnabled ← UsingDeinterlaceFilter) -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 6: Video Decoder label + cbxVideoDecoder -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ── Row 0: Video Device ──────────────────────────────────────────── -->
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" MinWidth="130"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="Video Device"
+                       FontFamily="Segoe UI"
+                       FontSize="13"
+                       VerticalAlignment="Center"
+                       Margin="35,0,10,0"/>
+
+            <!--
+                cbxDevice: items populated by AForge (commented) → bound to VM.DeviceItems.
+                IsEnabled bound to VM.IsDeviceEnabled (false in catch if no devices found).
+            -->
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding DeviceItems}"
+                      SelectedIndex="{Binding DeviceIndex, Mode=TwoWay}"
+                      IsEnabled="{Binding IsDeviceEnabled}"
+                      HorizontalAlignment="Stretch"/>
+        </Grid>
+
+        <!-- ── Row 1: Kênh ──────────────────────────────────────────────────── -->
+        <Grid Grid.Row="1" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" MinWidth="130"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="Kênh"
+                       FontFamily="Segoe UI"
+                       FontSize="13"
+                       VerticalAlignment="Center"
+                       Margin="35,0,10,0"/>
+
+            <!-- Items = static array defined in VideoCaptureDeviceSettingPage code-behind -->
+            <ComboBox Grid.Column="1"
+                      Width="152"
+                      ItemsSource="{x:Static local:VideoCaptureDeviceSettingPage.ChanelItems}"
+                      SelectedIndex="{Binding ChanelIndex, Mode=TwoWay}"/>
+        </Grid>
+
+        <!-- ── Row 2: Desired Frame Rate ────────────────────────────────────── -->
+        <Grid Grid.Row="2" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" MinWidth="130"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="Desired Frame Rate"
+                       FontFamily="Segoe UI"
+                       FontSize="13"
+                       VerticalAlignment="Center"
+                       Margin="35,0,10,0"/>
+
+            <!-- Items = static array defined in VideoCaptureDeviceSettingPage code-behind -->
+            <ComboBox Grid.Column="1"
+                      Width="152"
+                      ItemsSource="{x:Static local:VideoCaptureDeviceSettingPage.DesiredFrameRateItems}"
+                      SelectedIndex="{Binding DesiredFrameRateIndex, Mode=TwoWay}"/>
+        </Grid>
+
+        <!-- ── Row 3: Desired Frame Size ────────────────────────────────────── -->
+        <Grid Grid.Row="3" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" MinWidth="130"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="Desired Frame Size"
+                       FontFamily="Segoe UI"
+                       FontSize="13"
+                       VerticalAlignment="Center"
+                       Margin="35,0,10,0"/>
+
+            <!-- Items = static array defined in VideoCaptureDeviceSettingPage code-behind -->
+            <ComboBox Grid.Column="1"
+                      Width="152"
+                      ItemsSource="{x:Static local:VideoCaptureDeviceSettingPage.DesiredFrameSizeItems}"
+                      SelectedIndex="{Binding DesiredFrameSizeIndex, Mode=TwoWay}"/>
+        </Grid>
+
+        <!-- ── Row 4: Using De-Interlace Filter checkbox + Find Filter button ── -->
+        <Grid Grid.Row="4" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!--
+                chkUsingDeinterlaceFilter → KzCheckBox.
+                IsChecked bound TwoWay to VM.UsingDeinterlaceFilter.
+                Drives IsEnabled of cbxDeinterlaceFilterName + btnFindFilter via binding.
+                Parity: WinForms chkUsingDeinterlaceFilter_CheckedChanged (ADR §6.1 E21).
+            -->
+            <kz:KzCheckBox Grid.Column="0"
+                           Content="Using De-Interlace Filter"
+                           IsChecked="{Binding UsingDeinterlaceFilter, Mode=TwoWay}"
+                           Margin="35,0,0,0"
+                           VerticalAlignment="Center"/>
+
+            <!--
+                btnFindFilter → KzButton.
+                IsEnabled bound to VM.UsingDeinterlaceFilter
+                (parity: cbxDeinterlaceFilterName.Enabled = btnFindFilter.Enabled = chk.Checked).
+                Command → FindFilterCommand (MsBox.Avalonia replaces MessageBox.Show).
+            -->
+            <kz:KzButton Grid.Column="1"
+                         Content="Find Filter"
+                         Width="136"
+                         Height="28"
+                         IsEnabled="{Binding UsingDeinterlaceFilter}"
+                         Command="{Binding FindFilterCommand}"/>
+        </Grid>
+
+        <!-- ── Row 5: Deinterlace Filter Name ───────────────────────────────── -->
+        <Grid Grid.Row="5" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" MinWidth="130"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="Name"
+                       FontFamily="Segoe UI"
+                       FontSize="13"
+                       VerticalAlignment="Center"
+                       Margin="35,0,10,0"/>
+
+            <!--
+                cbxDeinterlaceFilterName: WinForms DropDown (editable) style.
+                SelectedItem bound TwoWay to VM.SelectedDeinterlaceFilterName (string?).
+                IsEnabled bound to VM.UsingDeinterlaceFilter (parity with chkUsingDeinterlaceFilter_CheckedChanged).
+            -->
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{x:Static local:VideoCaptureDeviceSettingPage.DeinterlaceFilterNameItems}"
+                      SelectedItem="{Binding SelectedDeinterlaceFilterName, Mode=TwoWay}"
+                      IsEnabled="{Binding UsingDeinterlaceFilter}"
+                      HorizontalAlignment="Stretch"/>
+        </Grid>
+
+        <!-- ── Row 6: Video Decoder ──────────────────────────────────────────── -->
+        <Grid Grid.Row="6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" MinWidth="130"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="Video Decoder"
+                       FontFamily="Segoe UI"
+                       FontSize="13"
+                       VerticalAlignment="Center"
+                       Margin="35,0,10,0"/>
+
+            <!-- Items = static array defined in VideoCaptureDeviceSettingPage code-behind -->
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{x:Static local:VideoCaptureDeviceSettingPage.VideoDecoderItems}"
+                      SelectedIndex="{Binding VideoDecoderIndex, Mode=TwoWay}"
+                      HorizontalAlignment="Stretch"/>
+        </Grid>
+
+    </Grid>
+
+</UserControl>

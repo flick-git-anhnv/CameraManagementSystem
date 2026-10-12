@@ -94,4 +94,29 @@ public class DahuaDriver : BaseCameraDriver
             return false;
         }
     }
+
+    public override async Task<bool> PresetAsync(CameraDevice camera, string action, int presetIndex, CancellationToken cancellationToken = default)
+    {
+        if (!camera.HasPtz) return false;
+        try
+        {
+            int ch = camera.Channel > 0 ? camera.Channel : 1;
+            string dahuaCode = action.Equals("goto", StringComparison.OrdinalIgnoreCase) ? "GotoPreset" : "SetPreset";
+            string url = $"http://{camera.IpAddress}:{camera.HttpPort}/cgi-bin/ptz.cgi?action=start&channel={ch}&code={dahuaCode}&arg1=0&arg2={presetIndex}&arg3=0";
+
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
+            if (!string.IsNullOrEmpty(camera.Username))
+            {
+                var authBytes = Encoding.ASCII.GetBytes($"{camera.Username}:{camera.Password}");
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
+            }
+
+            var resp = await http.GetAsync(url, cancellationToken);
+            return resp.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

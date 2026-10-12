@@ -1,0 +1,77 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:kz="clr-namespace:KztekComponentAvalonia.Controls;assembly=KztekComponentAvalonia"
+        xmlns:local="using:Kztek.Cameras"
+        x:Class="Kztek.Cameras.frmViewCamera"
+        Title="Camera View"
+        Width="926" Height="583"
+        Background="White"
+        WindowStartupLocation="CenterScreen">
+
+    <!--
+        Avalonia Window — port of WinForms frmViewCamera (F5, ADR §5.1). Task G5.15.
+
+        Layout mirrors Designer.cs:
+          - panel1 (Dock=Top, 40px):
+              btnOpenWebview (Left, 136px) | txtIP (Fill, right-aligned) | lblVideoSize (Right, 128px)
+          - _player (Fill): AnvPlayer — replaces pictureBox1 + System.Timers.Timer frame grab.
+
+        WinForms → Avalonia API mapping (ADR §6.2):
+          System.Timers.Timer                → DispatcherTimer (fires on UI thread — Invoke() not needed)
+          pictureBox1.Image = bitmap         → AnvPlayer handles render internally via Channel consumer
+          camera.GetCurrentVideoFrame()      → _player.GetCurrentVideoFrame() for lblVideoSize only
+          FormClosing                        → Window.Closing (player stop) + Window.Unloaded (timer stop)
+          Form.BackColor = White             → Window.Background = White
+
+        Timer stop: per avalonia-migration-review-checklist lesson, MUST stop in Unloaded
+        (not only Closing/Closed) to avoid memory leak when window is hidden but not yet closed.
+    -->
+
+    <DockPanel LastChildFill="True">
+
+        <!-- panel1 (Dock=Top, 40px) — mirrors WinForms Panel(Dock=Top, H=40) -->
+        <Border DockPanel.Dock="Top"
+                Height="40"
+                Background="White"
+                BorderBrush="#CBCBCB"
+                BorderThickness="0,0,0,1">
+            <DockPanel>
+
+                <!-- btnOpenWebview — WinForms Button(Dock=Left, W=136, Text="Mở Webview") -->
+                <kz:KzButton DockPanel.Dock="Left"
+                             x:Name="btnOpenWebview"
+                             Content="Mở Webview"
+                             Width="136"
+                             Click="BtnOpenWebview_Click"/>
+
+                <!-- lblVideoSize — WinForms Label(Dock=Right, W=128, Font=12, TextAlign=MiddleRight) -->
+                <TextBlock DockPanel.Dock="Right"
+                           x:Name="lblVideoSize"
+                           Text="640x480"
+                           Width="128"
+                           TextAlignment="Right"
+                           VerticalAlignment="Center"
+                           Padding="0,0,8,0"
+                           FontSize="12"
+                           FontFamily="Segoe UI"/>
+
+                <!-- txtIP — WinForms Label(Dock=Fill, Font=12, TextAlign=MiddleRight, Padding=0,0,8,0) -->
+                <TextBlock x:Name="txtIP"
+                           Text="127.0.0.1"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"
+                           Padding="0,0,8,0"
+                           FontSize="12"
+                           FontFamily="Segoe UI"/>
+
+            </DockPanel>
+        </Border>
+
+        <!-- _player (Fill) — replaces WinForms pictureBox1 (Dock=Fill, BackColor=ControlDark).
+             AnvPlayer tự quản lý decode pipeline qua AnvPlayerService + Channel consumer;
+             không cần đẩy frame thủ công (parity: DispatcherTimer chỉ dùng để cập nhật lblVideoSize). -->
+        <local:AnvPlayer x:Name="_player"/>
+
+    </DockPanel>
+
+</Window>

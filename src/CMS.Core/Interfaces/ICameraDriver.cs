@@ -29,6 +29,11 @@ public interface ICameraDriver
     Task<bool> SendPtzCommandAsync(CameraDevice camera, PtzCommand command, double speed = 0.5, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gọi hoặc lưu điểm nhớ Preset PTZ
+    /// </summary>
+    Task<bool> PresetAsync(CameraDevice camera, string action, int presetIndex, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Chụp ảnh tĩnh (Snapshot JPEG) trực tiếp từ camera
     /// </summary>
     Task<byte[]?> GetSnapshotAsync(CameraDevice camera, CancellationToken cancellationToken = default);

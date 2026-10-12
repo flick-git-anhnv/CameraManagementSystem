@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CMS.App.ViewModels"
         xmlns:views="using:CMS.App.Views"
+        xmlns:controls="using:CMS.App.Controls"
         xmlns:entities="using:CMS.Core.Entities"
         x:Class="CMS.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -72,6 +73,12 @@
                             Classes="nav-tab"
                             Classes.active="{Binding IsEMapActive}"/>
 
+                    <Button Content="🚨 Alarms" 
+                            Command="{Binding NavigateCommand}" 
+                            CommandParameter="{x:Static vm:NavigationPage.AlarmCenter}"
+                            Classes="nav-tab"
+                            Classes.active="{Binding IsAlarmCenterActive}"/>
+
                     <Button Content="⚙️ Device Management" 
                             Command="{Binding NavigateCommand}" 
                             CommandParameter="{x:Static vm:NavigationPage.DeviceManagement}"
@@ -118,29 +125,48 @@
             <!-- 1. Live View Page -->
             <Grid IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.LiveView}}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="280" MinWidth="180" MaxWidth="500"/>
+                    <ColumnDefinition Width="260" MinWidth="180" MaxWidth="400"/>
                     <ColumnDefinition Width="6"/>
                     <ColumnDefinition Width="*" MinWidth="400"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Left Sidebar: Device Tree -->
                 <Border Grid.Column="0" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="0,0,1,0" Padding="12">
                     <Grid RowDefinitions="Auto, Auto, *">
                         <TextBlock Grid.Row="0" Text="CAMERAS (DOUBLE CLICK TO PLAY)" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}" Margin="0,0,0,8"/>
-                        <TextBox Grid.Row="1" PlaceholderText="Search camera..." Margin="0,0,0,10"/>
+                        <TextBox Grid.Row="1" Text="{Binding SearchText}" PlaceholderText="Search camera..." Margin="0,0,0,10"/>
                         
                         <ScrollViewer Grid.Row="2">
-                            <ListBox x:Name="CameraListBox" ItemsSource="{Binding ConfiguredCameras}" Background="Transparent">
+                            <ListBox x:Name="CameraListBox" ItemsSource="{Binding FilteredCameras}" Background="Transparent">
                                 <ListBox.ItemTemplate>
-                                    <DataTemplate x:DataType="entities:CameraDevice">
+                                    <DataTemplate x:DataType="vm:CameraItemViewModel">
                                         <Border Background="{DynamicResource ThemeItemContainerBackgroundBrush}" BorderBrush="{DynamicResource ThemeItemContainerBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10,8" Margin="0,2">
                                             <Grid ColumnDefinitions="Auto, *, Auto">
                                                 <Border Grid.Column="0" Background="#10B981" CornerRadius="4" Width="8" Height="8" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                                <StackPanel Grid.Column="1">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="13"/>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,6,0">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="13" TextTrimming="CharacterEllipsis"/>
                                                     <TextBlock Text="{Binding IpAddress}" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
                                                 </StackPanel>
-                                                <TextBlock Grid.Column="2" Text="▶" Foreground="#3B82F6" VerticalAlignment="Center"/>
+
+                                                <!-- Status Badges & Action -->
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                    <!-- Recording Status Badge -->
+                                                    <Border Background="#DC2626" CornerRadius="3" Padding="5,2" VerticalAlignment="Center"
+                                                            IsVisible="{Binding IsRecording}" ToolTip.Tip="Đang ghi hình (Zero-Transcode Recording)">
+                                                        <TextBlock Text="● REC" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                                                    </Border>
+
+                                                    <!-- Viewing Status Badge -->
+                                                    <Border Background="#2563EB" CornerRadius="3" Padding="5,2" VerticalAlignment="Center"
+                                                            IsVisible="{Binding IsViewing}" ToolTip.Tip="Đang phát trên Live View">
+                                                        <TextBlock Text="● LIVE" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                                                    </Border>
+
+                                                    <!-- Play Icon when Not Viewing -->
+                                                    <TextBlock Text="▶" Foreground="#3B82F6" VerticalAlignment="Center"
+                                                               IsVisible="{Binding !IsViewing}" ToolTip.Tip="Nhấn đúp để phát"/>
+                                                </StackPanel>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
@@ -153,10 +179,15 @@
                 <!-- Vertical Splitter between Sidebar and Video Grid -->
                 <GridSplitter Grid.Column="1" Width="6" ResizeDirection="Columns" HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
 
-                <!-- Right Video Grid Area -->
+                <!-- Center Video Grid Area -->
                 <Grid Grid.Column="2" Background="{DynamicResource ThemeVideoAreaBackgroundBrush}">
                     <views:LiveViewGrid x:Name="LiveGrid" Margin="4"/>
                 </Grid>
+
+                <!-- Right Sidebar: PTZ Controller -->
+                <Border Grid.Column="3" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1,0,0,0">
+                    <controls:PtzControlView x:Name="LivePtzControl"/>
+                </Border>
             </Grid>
 
             <!-- 2. Device Management Page -->
@@ -174,6 +205,17 @@
                 <views:StorageConfigView DataContext="{Binding StorageConfigVM}"/>
             </Border>
 
+            <!-- 5. E-Map Page -->
+            <Border IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.EMap}}">
+                <views:EMapView DataContext="{Binding EMapVM}"/>
+            </Border>
+
+            <!-- 6. Alarm Center Page -->
+            <Border IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.AlarmCenter}}">
+                <views:AlarmCenterView DataContext="{Binding AlarmCenterVM}"/>
+            </Border>
+
+            <!-- 7. AI Analytics Page Placeholder -->
             <Grid IsVisible="{Binding CurrentPage, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:NavigationPage.AiAnalytics}}">
                 <TextBlock Text="🤖 Edge AI Analytics (Vehicles &amp; Persons) will be loaded here (Milestone 7 &amp; 8)" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="16"/>
             </Grid>

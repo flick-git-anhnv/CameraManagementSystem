@@ -71,13 +71,13 @@
                         <TextBlock Text="Tùy chỉnh:" Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="12" VerticalAlignment="Center"/>
                         <TextBlock Text="Hàng" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="11" VerticalAlignment="Center"/>
                         <NumericUpDown x:Name="NumRows" Minimum="1" Maximum="10" Value="2" FormatString="0"
-                                       Width="105" Height="30" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-                                       Padding="8,0" ToolTip.Tip="Số hàng (1 - 10)"/>
+                                       Width="110" Height="30" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
+                                       Padding="6,0" ToolTip.Tip="Số hàng (1 - 10)"/>
                         <TextBlock Text="×" Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="13" VerticalAlignment="Center"/>
                         <TextBlock Text="Cột" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="11" VerticalAlignment="Center"/>
                         <NumericUpDown x:Name="NumCols" Minimum="1" Maximum="10" Value="2" FormatString="0"
-                                       Width="105" Height="30" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-                                       Padding="8,0" ToolTip.Tip="Số cột (1 - 10)"/>
+                                       Width="110" Height="30" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
+                                       Padding="6,0" ToolTip.Tip="Số cột (1 - 10)"/>
                         <Button x:Name="BtnApplyCustomGrid" Content="Áp dụng" Height="30" Padding="10,2"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Background="{DynamicResource ThemeButtonSecondaryBackgroundBrush}"

@@ -1,0 +1,231 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:kz="clr-namespace:KztekComponentAvalonia.Controls;assembly=KztekComponentAvalonia"
+             xmlns:local="using:Kztek.Cameras"
+             x:Class="Kztek.Cameras.IPCameraSettingPage"
+             x:DataType="local:IPCameraSettingPageViewModel"
+             MinWidth="650" MinHeight="290">
+
+    <!--
+        IPCameraSettingPage (Avalonia port)
+        Source: SettingPage/IPCameraSettingPage.cs + .Designer.cs (WinForms)
+        Key changes vs WinForms:
+        - KzIPTextbox thay TextBox txtVideoSource (synced qua IPAddressChanged event trong code-behind,
+          KHÔNG dùng TwoWay binding vì IPAddress là CLR property, không phải AvaloniaProperty)
+        - KzPasswordTextBox thay TextBox+UseSystemPasswordChar=true (đọc/ghi qua code-behind field)
+        - KzTextBox thay TextBox txtLogin (TwoWay binding qua ViewModel)
+        - NumericUpDown.Value là decimal? (thay decimal của WinForms NumericUpDown)
+        - cbxFrameRate/cbxImageQuality.IsEnabled ← IsStreamDependentEnabled (ViewModel computed)
+        DataContext = IPCameraSettingPageViewModel (set trong code-behind constructor)
+    -->
+
+    <Grid Margin="20,12">
+        <Grid.ColumnDefinitions>
+            <!-- Col0: Label bên trái (cố định) -->
+            <ColumnDefinition Width="130"/>
+            <!-- Col1: Control bên trái (co giãn) -->
+            <ColumnDefinition Width="*"/>
+            <!-- Col2: Khoảng giữa 2 cột -->
+            <ColumnDefinition Width="20"/>
+            <!-- Col3: Label bên phải (tự co theo text) -->
+            <ColumnDefinition Width="Auto"/>
+            <!-- Col4: Control bên phải (cố định, parity ~163px WinForms) -->
+            <ColumnDefinition Width="170"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <!-- Row 0: Địa chỉ (KzIPTextbox) / Http Port -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <!-- Row 2: Tên truy cập (Login) / Server Port -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <!-- Row 4: Mật khẩu (Password) — left only -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <!-- Row 6: Kiểu hình ảnh (StreamType) / Protocol -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <!-- Row 8: Độ phân giải (Resolution) / Kênh Video -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <!-- Row 10: Frame Rate / Kênh Img -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <!-- Row 12: Chất lượng ảnh (full width) -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <!-- Row 14: Video Decoder (full width) -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ── Row 0: Địa chỉ (IP) / Http Port ────────────────────── -->
+        <TextBlock Grid.Row="0" Grid.Column="0"
+                   Text="Địa chỉ:"
+                   FontFamily="Segoe UI" FontSize="13"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"/>
+        <!--
+            KzIPTextbox — x:Name để code-behind subscribe IPAddressChanged event.
+            KHÔNG dùng TwoWay binding (IPAddress là CLR property, không AvaloniaProperty).
+            Sync: user type → IPAddressChanged → code-behind → _vm.IpAddress.
+        -->
+        <kz:KzIPTextbox Grid.Row="0" Grid.Column="1"
+                        x:Name="_txtIP"
+                        Height="32"
+                        VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="0" Grid.Column="3"
+                   Text="Http Port:"
+                   FontFamily="Segoe UI" FontSize="13"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"/>
+        <NumericUpDown Grid.Row="0" Grid.Column="4"
+                       Value="{Binding HttpPort, Mode=TwoWay}"
+                       Minimum="0" Maximum="65535"
+                       Height="32"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Stretch"/>
+
+        <!-- ── Row 2: Tên truy cập / Server Port ─────────────────── -->
+        <TextBlock Grid.Row="2" Grid.Column="0"
+                   Text="Tên truy cập:"
+                   FontFamily="Segoe UI" FontSize="13"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"/>
+        <kz:KzTextBox Grid.Row="2" Grid.Column="1"
+                      Text="{Binding Login, Mode=TwoWay}"
+                      Height="32"
+                      VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="2" Grid.Column="3"
+                   Text="Server Port:"
+                   FontFamily="Segoe UI" FontSize="13"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"/>
+        <NumericUpDown Grid.Row="2" Grid.Column="4"
+                       Value="{Binding ServerPort, Mode=TwoWay}"
+                       Minimum="0" Maximum="65535"
+                       Height="32"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Stretch"/>
+
+        <!-- ── Row 4: Mật khẩu (left only) ──────────────────────── -->
+        <TextBlock Grid.Row="4" Grid.Column="0"
+                   Text="Mật khẩu:"
+                   FontFamily="Segoe UI" FontSize="13"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"/>
+        <!--
+            KzPasswordTextBox — x:Name để code-behind đọc/ghi Text trực tiếp.
+            KHÔNG dùng TwoWay binding (Avalonia KzPasswordTextBox KHÔNG có TextChanged event).
+            Text được đọc tại thời điểm consumer gọi page.Password getter.
+        -->
+        <kz:KzPasswordTextBox Grid.Row="4" Grid.Column="1"
+                              x:Name="_txtPassword"
+                              Height="32"
+                              VerticalAlignment="Center"/>
+
+        <!-- ── Row 6: Kiểu hình ảnh / Protocol ──────────────────── -->
+        <TextBlock Grid.Row="6" Grid.Column="0"
+                   Text="Kiểu hình ảnh:"
+                   FontFamily="Segoe UI" FontSize="13"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"/>
+        <ComboBox Grid.Row="6" Grid.Column="1"
+                  ItemsSource="{x:Static local:IPCameraSettingPage.StreamTypeItems}"
+                  SelectedIndex="{Binding StreamTypeIndex, Mode=TwoWay}"
+                  Height="32"
+                  HorizontalAlignment="Stretch"/>
+        <TextBlock Grid.Row="6" Grid.Column="3"
+                   Text="Protocol:"
+                   FontFamily="Segoe UI" FontSize="13"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"/>
+        <ComboBox Grid.Row="6" Grid.Column="4"
+                  ItemsSource="{x:Static local:IPCameraSettingPage.ProtocolItems}"
+                  SelectedIndex="{Binding ProtocolIndex, Mode=TwoWay}"
+                  Height="32"
+                  HorizontalAlignment="Stretch"/>
+
+        <!-- ── Row 8: Độ phân giải / Kênh Video ─────────────────── -->
+        <TextBlock Grid.Row="8" Grid.Column="0"
+                   Text="Độ phân giải:"
+                   FontFamily="Segoe UI" FontSize="13"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"/>
+        <!--
+            SelectedItem binding (string) — parity với WinForms cbxImageResolution.Text get/set.
+            DropDownList style → SelectedItem returns selected string, setting string selects by value.
+        -->
+        <ComboBox Grid.Row="8" Grid.Column="1"
+                  ItemsSource="{x:Static local:IPCameraSettingPage.ImageResolutionItems}"
+                  SelectedItem="{Binding ImageResolution, Mode=TwoWay}"
+                  Height="32"
+                  HorizontalAlignment="Stretch"/>
+        <TextBlock Grid.Row="8" Grid.Column="3"
+                   Text="Kênh Video:"
+                   FontFamily="Segoe UI" FontSize="13"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"/>
+        <ComboBox Grid.Row="8" Grid.Column="4"
+                  ItemsSource="{x:Static local:IPCameraSettingPage.ChanelItems}"
+                  SelectedIndex="{Binding ChanelVideoIndex, Mode=TwoWay}"
+                  Height="32"
+                  HorizontalAlignment="Stretch"/>
+
+        <!-- ── Row 10: Frame Rate / Kênh Img ────────────────────── -->
+        <TextBlock Grid.Row="10" Grid.Column="0"
+                   Text="Frame Rate:"
+                   FontFamily="Segoe UI" FontSize="13"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"/>
+        <!--
+            IsEnabled ← IsStreamDependentEnabled (ViewModel).
+            Parity: cbxFrameRate.Enabled = (StreamType == 0 || StreamType == 1).
+        -->
+        <ComboBox Grid.Row="10" Grid.Column="1"
+                  ItemsSource="{x:Static local:IPCameraSettingPage.FrameRateItems}"
+                  SelectedIndex="{Binding FrameRateIndex, Mode=TwoWay}"
+                  IsEnabled="{Binding IsStreamDependentEnabled}"
+                  Height="32"
+                  HorizontalAlignment="Stretch"/>
+        <TextBlock Grid.Row="10" Grid.Column="3"
+                   Text="Kênh Img:"
+                   FontFamily="Segoe UI" FontSize="13"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"/>
+        <ComboBox Grid.Row="10" Grid.Column="4"
+                  ItemsSource="{x:Static local:IPCameraSettingPage.ChanelItems}"
+                  SelectedIndex="{Binding ChanelImgIndex, Mode=TwoWay}"
+                  Height="32"
+                  HorizontalAlignment="Stretch"/>
+
+        <!-- ── Row 12: Chất lượng ảnh (full width) ──────────────── -->
+        <TextBlock Grid.Row="12" Grid.Column="0"
+                   Text="Chất lượng ảnh:"
+                   FontFamily="Segoe UI" FontSize="13"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"/>
+        <!--
+            ColumnSpan=4 để control co giãn sang cột phải (không có label/control bên phải ở row này).
+            IsEnabled ← IsStreamDependentEnabled — parity WinForms cbxImageQuality.Enabled.
+        -->
+        <ComboBox Grid.Row="12" Grid.Column="1" Grid.ColumnSpan="4"
+                  ItemsSource="{x:Static local:IPCameraSettingPage.ImageQualityItems}"
+                  SelectedItem="{Binding ImageQuality, Mode=TwoWay}"
+                  IsEnabled="{Binding IsStreamDependentEnabled}"
+                  Height="32"
+                  HorizontalAlignment="Stretch"/>
+
+        <!-- ── Row 14: Video Decoder (full width) ───────────────── -->
+        <TextBlock Grid.Row="14" Grid.Column="0"
+                   Text="Video Decoder:"
+                   FontFamily="Segoe UI" FontSize="13"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"/>
+        <ComboBox Grid.Row="14" Grid.Column="1" Grid.ColumnSpan="4"
+                  ItemsSource="{x:Static local:IPCameraSettingPage.VideoDecoderItems}"
+                  SelectedIndex="{Binding VideoDecoderIndex, Mode=TwoWay}"
+                  Height="32"
+                  HorizontalAlignment="Stretch"/>
+    </Grid>
+
+</UserControl>

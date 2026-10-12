@@ -1,0 +1,116 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:kz="clr-namespace:KztekComponentAvalonia.Controls;assembly=KztekComponentAvalonia"
+             xmlns:local="using:Kztek.Cameras"
+             x:Class="Kztek.Cameras.CameraDescriptionPage"
+             x:DataType="local:CameraDescriptionPageViewModel"
+             MinWidth="510" MinHeight="354">
+
+    <!--
+        CameraDescriptionPage (Avalonia port — task G5.10)
+        Source: SettingPage/CameraDescriptionPage.cs + .Designer.cs (WinForms)
+        Implements: IWizardPage — trang 1 của Wizard nhập thông tin camera.
+        Thay đổi chính:
+          - TextBox → KzTextBox (ADR §6.1)
+          - Label   → TextBlock (ADR §6.1)
+          - ComboBox WinForms → ComboBox Avalonia native, bind SelectedIndex (ADR §6.1 + §6.2 E19)
+          - MessageBox.Show() → MsBox.Avalonia async fire-and-forget (ADR §6.2)
+        DataContext = CameraDescriptionPageViewModel (set trong code-behind constructor)
+    -->
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <!-- Row 0: Tên Camera label + KzTextBox -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 1: spacer -->
+            <RowDefinition Height="16"/>
+            <!-- Row 2: Loại Camera label + ComboBox -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 3: spacer -->
+            <RowDefinition Height="16"/>
+            <!-- Row 4: Ghi chú label + KzTextBox multiline -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ── Row 0: Tên Camera ─────────────────────────────────────── -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="115"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="Tên Camera:"
+                       FontFamily="Segoe UI"
+                       FontSize="13"
+                       VerticalAlignment="Center"
+                       Margin="35,0,5,0"/>
+
+            <!--
+                KzTextBox bound TwoWay → Name trong ViewModel.
+                MaxLength=25 parity với WinForms txtName.MaxLength = 25.
+            -->
+            <kz:KzTextBox Grid.Column="1"
+                          Text="{Binding Name, Mode=TwoWay}"
+                          MaxLength="25"
+                          Margin="0,0,10,0"/>
+        </Grid>
+
+        <!-- ── Row 2: Loại Camera ────────────────────────────────────── -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="115"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="Loại Camera:"
+                       FontFamily="Segoe UI"
+                       FontSize="13"
+                       VerticalAlignment="Center"
+                       Margin="35,0,5,0"/>
+
+            <!--
+                ComboBox Avalonia native — ADR §6.1 "ComboBox (chỉ chọn) → ComboBox native".
+                ItemsSource = static array VideoSourceItems (x:Static từ code-behind).
+                SelectedIndex bound TwoWay → VideoSourceIndex trong ViewModel.
+                Parity: DropDownStyle = DropDownList → IsEditable không set (default false).
+                MaxDropDownItems=20 parity → MaxDropDownHeight không cần set riêng (Avalonia tự xử lý).
+            -->
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{x:Static local:CameraDescriptionPage.VideoSourceItems}"
+                      SelectedIndex="{Binding VideoSourceIndex, Mode=TwoWay}"
+                      HorizontalAlignment="Stretch"
+                      Margin="0,0,10,0"/>
+        </Grid>
+
+        <!-- ── Row 4: Ghi chú (multiline) ───────────────────────────── -->
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="115"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="Ghi chú:"
+                       FontFamily="Segoe UI"
+                       FontSize="13"
+                       VerticalAlignment="Top"
+                       Margin="35,5,5,0"/>
+
+            <!--
+                KzTextBox multiline — AcceptsReturn=True parity với txtDescription.Multiline=True.
+                MaxLength=255 parity với WinForms.
+                MinHeight=180 xấp xỉ WinForms txtDescription.Size.Height=231 (scaled).
+            -->
+            <kz:KzTextBox Grid.Column="1"
+                          Text="{Binding Description, Mode=TwoWay}"
+                          MaxLength="255"
+                          AcceptsReturn="True"
+                          MinHeight="180"
+                          VerticalAlignment="Top"
+                          Margin="0,0,10,0"/>
+        </Grid>
+    </Grid>
+
+</UserControl>

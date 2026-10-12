@@ -109,4 +109,38 @@ public class HikvisionDriver : BaseCameraDriver
             return false;
         }
     }
+
+    public override async Task<bool> PresetAsync(CameraDevice camera, string action, int presetIndex, CancellationToken cancellationToken = default)
+    {
+        if (!camera.HasPtz) return false;
+        try
+        {
+            int ch = camera.Channel > 0 ? camera.Channel : 1;
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
+            if (!string.IsNullOrEmpty(camera.Username))
+            {
+                var authBytes = Encoding.ASCII.GetBytes($"{camera.Username}:{camera.Password}");
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
+            }
+
+            if (action.Equals("goto", StringComparison.OrdinalIgnoreCase))
+            {
+                string url = $"http://{camera.IpAddress}:{camera.HttpPort}/ISAPI/PTZCtrl/channels/{ch}/presets/{presetIndex}/goto";
+                var resp = await http.PutAsync(url, null, cancellationToken);
+                return resp.IsSuccessStatusCode;
+            }
+            else // set
+            {
+                string url = $"http://{camera.IpAddress}:{camera.HttpPort}/ISAPI/PTZCtrl/channels/{ch}/presets/{presetIndex}";
+                string xml = $@"<?xml version=""1.0"" encoding=""UTF-8""?><PTZPreset><id>{presetIndex}</id><presetName>Preset{presetIndex}</presetName></PTZPreset>";
+                var content = new StringContent(xml, Encoding.UTF8, "application/xml");
+                var resp = await http.PutAsync(url, content, cancellationToken);
+                return resp.IsSuccessStatusCode;
+            }
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

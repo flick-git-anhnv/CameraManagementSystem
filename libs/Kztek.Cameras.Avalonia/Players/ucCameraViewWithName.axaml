@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:kz="clr-namespace:KztekComponentAvalonia.Controls;assembly=KztekComponentAvalonia"
+             x:Class="Kztek.Cameras.ucCameraViewWithName">
+
+    <!--
+        ucCameraViewWithName (Avalonia port)
+        Source: Players/ucCameraViewWithName.cs + .Designer.cs (WinForms, 26+60 dòng)
+
+        Key changes vs WinForms:
+        - AnvPlayer (camera.videoSourcePlayer) được add dynamically vào _playerContainer (Panel)
+          trong code-behind — parity: this.Controls.Add(uc); uc.Dock = DockStyle.Fill
+        - KzLabel (extends TextBlock) thay System.Windows.Forms.Label (lblCameraName)
+          → dùng KzLabel.Text thay lblCameraName.Text; Foreground thay ForeColor
+        - Panel xếp chồng (Grid row duy nhất) — KzLabel luôn ở trên AnvPlayer
+          → parity: lblCameraName.BringToFront() ở WinForms
+        - camera.Start(0.0, 0.0, 0) thay camera.Start(0, 0, 0)
+          — Avalonia Camera.Start nhận double/double/int
+    -->
+
+    <Grid>
+        <!-- AnvPlayer sẽ add dynamically trong code-behind -->
+        <Panel x:Name="_playerContainer"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch" />
+
+        <!-- Tên camera overlay góc dưới-trái — parity: lblCameraName.BringToFront() -->
+        <kz:KzLabel x:Name="_lblCameraName"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Margin="4,0,0,4"
+                    Foreground="Black" />
+    </Grid>
+</UserControl>

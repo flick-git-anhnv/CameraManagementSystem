@@ -12,7 +12,7 @@
     <ProjectReference Include="..\CMS.Core\CMS.Core.csproj" />
     <ProjectReference Include="..\CMS.Drivers\CMS.Drivers.csproj" />
     <ProjectReference Include="..\CMS.Infrastructure\CMS.Infrastructure.csproj" />
-    <ProjectReference Include="E:\KZTEK\Code_Git\1.Window\0.BaseLIB\Kztek.Camera\Kztek.Camera\1.Source\Kztek.Cameras.Avalonia\Kztek.Cameras.Avalonia.csproj" />
+    <ProjectReference Include="..\..\libs\Kztek.Cameras.Avalonia\Kztek.Cameras.Avalonia.csproj" />
   </ItemGroup>
 
 </Project>

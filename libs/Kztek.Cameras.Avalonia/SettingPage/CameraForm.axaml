@@ -1,0 +1,15 @@
+<local:Wizard xmlns="https://github.com/avaloniaui"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:local="using:Kztek.Cameras"
+              x:Class="Kztek.Cameras.CameraForm">
+    <!--
+        CameraForm (Avalonia port — task G5.13)
+        Subclass của Wizard — ghép 2 trang:
+          page1 = CameraDescriptionPage  (chọn tên + loại camera)
+          page2 = CameraSettingPage      (router IP/VC/VF)
+
+        KHÔNG định nghĩa visual tree riêng — kế thừa toàn bộ chrome điều hướng
+        (descriptionLabel, workContent, Back/Next/Finish/Cancel) từ Wizard.axaml.
+        Title được set trong constructor code-behind: "Thiết lập Camera".
+    -->
+</local:Wizard>

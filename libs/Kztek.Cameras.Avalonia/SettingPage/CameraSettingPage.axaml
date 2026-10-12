@@ -1,0 +1,15 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Kztek.Cameras.CameraSettingPage">
+    <!--
+        CameraSettingPage (Avalonia port — task G5.11)
+        Router page: chứa 1 trong 3 sub-page tùy CameraType được set từ code-behind.
+        WinForms: Panel (Dock=Fill) + sourcePage.Dock=DockStyle.Fill.
+        Avalonia: ContentControl fill — đổi Content khi router switch sub-page.
+        Parity kích thước WinForms: 616×385.
+    -->
+    <ContentControl x:Name="pageContent"
+                    HorizontalContentAlignment="Stretch"
+                    VerticalContentAlignment="Stretch"
+                    MinWidth="616" MinHeight="385"/>
+</UserControl>

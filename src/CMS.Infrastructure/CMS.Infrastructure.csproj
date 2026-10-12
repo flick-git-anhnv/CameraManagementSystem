@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CMS.Core\CMS.Core.csproj" />
-    <ProjectReference Include="E:\KZTEK\Code_Git\1.Window\1.IPARKING\v8\6.Avalonia\parking-v8-app-avalonia\src\Kztek.Api.MultyPlatform\Kztek.Api.MultyPlatform.csproj" />
+    <ProjectReference Include="..\..\libs\Kztek.Api.MultyPlatform\Kztek.Api.MultyPlatform.csproj" />
   </ItemGroup>
 
 </Project>

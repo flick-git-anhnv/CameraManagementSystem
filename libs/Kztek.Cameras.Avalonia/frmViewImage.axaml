@@ -1,0 +1,60 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:kz="clr-namespace:KztekComponentAvalonia.Controls;assembly=KztekComponentAvalonia"
+        xmlns:local="clr-namespace:Kztek.Cameras"
+        x:Class="Kztek.Cameras.frmViewImage"
+        x:DataType="local:frmViewImageViewModel"
+        Title="View Image"
+        Width="850" Height="520"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        Background="White">
+
+    <!--
+        Avalonia port of WinForms frmViewImage (U3 — ADR §5.1).
+        Layout mirrors Designer.cs:
+          - panel1 (Dock=Top, 48px):  btnSave (left) + lblVideoSize (right)
+          - pictureBox1 (Fill):       Image control, Stretch=Fill
+    -->
+    <DockPanel>
+
+        <!-- panel1 equivalent — top toolbar, height 48 -->
+        <Grid DockPanel.Dock="Top"
+              Height="48"
+              Background="White">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- btnSave — left side (original: Location 8,8 / Size 136x32) -->
+            <kz:KzButton Grid.Column="0"
+                         Content="Lưu hình"
+                         Command="{Binding SaveCommand}"
+                         Width="136"
+                         Height="32"
+                         Margin="8,8,0,8"
+                         FontFamily="Segoe UI"
+                         FontSize="12"/>
+
+            <!-- lblVideoSize — right side (original: Dock=Right, Size 162x48, Italic, DarkGreen) -->
+            <TextBlock Grid.Column="2"
+                       Text="{Binding SizeText}"
+                       Width="162"
+                       FontFamily="Segoe UI"
+                       FontSize="12"
+                       FontStyle="Italic"
+                       Foreground="DarkGreen"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center"
+                       TextAlignment="Right"
+                       Margin="0,0,8,0"/>
+        </Grid>
+
+        <!-- pictureBox1 equivalent — fills remaining space, SizeMode=StretchImage → Stretch=Fill -->
+        <Image Source="{Binding DisplayBitmap}"
+               Stretch="Fill"/>
+
+    </DockPanel>
+</Window>

@@ -1,0 +1,113 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:kz="clr-namespace:KztekComponentAvalonia.Controls;assembly=KztekComponentAvalonia"
+             xmlns:local="using:Kztek.Cameras"
+             x:Class="Kztek.Cameras.VideoFileSettingPage"
+             x:DataType="local:VideoFileSettingPageViewModel"
+             MinWidth="510" MinHeight="292">
+
+    <!--
+        VideoFileSettingPage (Avalonia port)
+        Source: SettingPage/VideoFileSettingPage.cs + .Designer.cs (WinForms)
+        Key change: OpenFileDialog.ShowDialog() → IStorageProvider.OpenFilePickerAsync (ADR §6.2 E22)
+        DataContext = VideoFileSettingPageViewModel (set in code-behind constructor)
+    -->
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <!-- Row 0: Label "Đường dẫn File:" -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 1: KzTextBox + KzButton "Mở ..." -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 2: spacer (parity ~20px WinForms gap) -->
+            <RowDefinition Height="20"/>
+            <!-- Row 3: Label + ComboBox Video Decoder -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 4: spacer -->
+            <RowDefinition Height="12"/>
+            <!-- Row 5: Label + ComboBox Desired Frame Size -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ── Row 0: Đường dẫn File label ───────────────────────── -->
+        <TextBlock Grid.Row="0"
+                   Text="Đường dẫn File:"
+                   FontFamily="Segoe UI"
+                   FontSize="13"
+                   Margin="35,5,0,4"/>
+
+        <!-- ── Row 1: Video file path + Browse button ────────────── -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- KzTextBox — bound TwoWay to VideoSource in ViewModel -->
+            <kz:KzTextBox Grid.Column="0"
+                          Text="{Binding VideoSource, Mode=TwoWay}"
+                          AcceptsReturn="True"
+                          MinHeight="78"
+                          Margin="38,0,5,0"
+                          VerticalAlignment="Top"/>
+
+            <!--
+                KzButton "Mở ..." — triggers BrowseCommand on ViewModel.
+                CommandParameter = $parent[UserControl] passes this UserControl
+                so ViewModel can call TopLevel.GetTopLevel(visual).StorageProvider.
+                Pattern: ADR §6.2 "OpenFileDialog → IStorageProvider.OpenFilePickerAsync".
+            -->
+            <kz:KzButton Grid.Column="1"
+                         Content="Mở ..."
+                         Width="87"
+                         Height="36"
+                         VerticalAlignment="Top"
+                         Command="{Binding BrowseCommand}"
+                         CommandParameter="{Binding $parent[UserControl]}"/>
+        </Grid>
+
+        <!-- ── Row 3: Video Decoder ──────────────────────────────── -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="Video Decoder:"
+                       FontFamily="Segoe UI"
+                       FontSize="13"
+                       VerticalAlignment="Center"
+                       Margin="35,0,10,0"/>
+
+            <!-- Items = static array defined in VideoFileSettingPage code-behind -->
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{x:Static local:VideoFileSettingPage.VideoDecoderItems}"
+                      SelectedIndex="{Binding VideoDecoderIndex, Mode=TwoWay}"
+                      MaxWidth="229"
+                      HorizontalAlignment="Left"/>
+        </Grid>
+
+        <!-- ── Row 5: Desired Frame Size ─────────────────────────── -->
+        <Grid Grid.Row="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="Desired Frame Size:"
+                       FontFamily="Segoe UI"
+                       FontSize="13"
+                       VerticalAlignment="Center"
+                       Margin="35,0,10,0"/>
+
+            <!-- Items = static array defined in VideoFileSettingPage code-behind -->
+            <ComboBox Grid.Column="1"
+                      Width="128"
+                      ItemsSource="{x:Static local:VideoFileSettingPage.FrameSizeItems}"
+                      SelectedIndex="{Binding DesiredFrameSizeIndex, Mode=TwoWay}"/>
+        </Grid>
+    </Grid>
+
+</UserControl>
