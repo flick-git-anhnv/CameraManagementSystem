@@ -249,6 +249,9 @@ public class UiHeadlessReviewTests
     public void Review_TimelineControl_Layout_And_Cursor()
     {
         var timeline = new TimelineControl();
+        var window = new Window { Width = 800, Height = 70, Content = timeline };
+        window.Show();
+        EnsureMeasuredAndArranged(window, 800, 70);
         EnsureMeasuredAndArranged(timeline, 800, 70);
 
         Assert.NotNull(timeline);
@@ -256,5 +259,40 @@ public class UiHeadlessReviewTests
         timeline.CurrentTime = TimeSpan.FromHours(14.5);
         timeline.RedrawTimeline();
         Assert.Equal(TimeSpan.FromHours(14.5), timeline.CurrentTime);
+
+        DateTime? selectedTime = null;
+        timeline.TimeSelected += (_, t) => selectedTime = t;
+
+        // Test raising pointer events for scrubbing/clicking
+        var pointer = new Avalonia.Input.Pointer(1, Avalonia.Input.PointerType.Mouse, true);
+        var pressArgs = new Avalonia.Input.PointerPressedEventArgs(
+            timeline,
+            pointer,
+            timeline,
+            new Point(400, 35),
+            0,
+            new Avalonia.Input.PointerPointProperties(Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PointerUpdateKind.LeftButtonPressed),
+            Avalonia.Input.KeyModifiers.None);
+        timeline.RaiseEvent(pressArgs);
+
+        Assert.True(timeline.IsDragging);
+
+        var releaseArgs = new Avalonia.Input.PointerReleasedEventArgs(
+            timeline,
+            pointer,
+            timeline,
+            new Point(400, 35),
+            0,
+            new Avalonia.Input.PointerPointProperties(Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PointerUpdateKind.LeftButtonReleased),
+            Avalonia.Input.KeyModifiers.None,
+            Avalonia.Input.MouseButton.Left);
+        timeline.RaiseEvent(releaseArgs);
+
+        Assert.False(timeline.IsDragging);
+        Assert.NotNull(selectedTime);
+        Assert.Equal(DateTime.Today.Date, selectedTime!.Value.Date);
+        Assert.True(Math.Abs((selectedTime.Value.TimeOfDay - TimeSpan.FromHours(12)).TotalSeconds) < 120);
+
+        window.Close();
     }
 }

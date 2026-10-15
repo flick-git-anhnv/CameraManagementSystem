@@ -28,6 +28,17 @@ public partial class EMapView : UserControl
     {
         InitializeComponent();
 
+        // ── Khôi phục độ rộng Splitter cho E-Map ───────────────────────────
+        var mainGrid = SplitterEMap.Parent as Grid;
+        var savedWidth = CMS.App.Services.AppSettingsService.Instance.Current.EMapSidebarWidth;
+        if (mainGrid != null && mainGrid.ColumnDefinitions.Count > 0 && savedWidth >= 240 && savedWidth <= 500)
+        {
+            mainGrid.ColumnDefinitions[0].Width = new GridLength(savedWidth, GridUnitType.Pixel);
+        }
+
+        // Lắng nghe khi kéo thả Splitter E-Map xong -> tự động lưu cấu hình
+        SplitterEMap.DragCompleted += (_, _) => SaveEMapSplitterWidth();
+
         MapCanvas.PointerPressed += OnMapCanvasPointerPressed;
         MapCanvas.SizeChanged += (_, _) => RedrawNodes();
         BtnClosePopup.Click += (_, _) => ClosePopup();
@@ -35,6 +46,23 @@ public partial class EMapView : UserControl
         BtnLoadMapImage.Click += OnLoadMapImageClick;
         this.DataContextChanged += OnDataContextChanged;
         this.SizeChanged += (_, _) => RedrawNodes();
+        this.Unloaded += (_, _) => SaveEMapSplitterWidth();
+    }
+
+    private void SaveEMapSplitterWidth()
+    {
+        var mainGrid = SplitterEMap.Parent as Grid;
+        if (mainGrid == null || mainGrid.ColumnDefinitions.Count == 0) return;
+        var col = mainGrid.ColumnDefinitions[0];
+
+        double w = col.ActualWidth > 0
+            ? col.ActualWidth
+            : (col.Width.IsAbsolute ? col.Width.Value : 0);
+
+        if (w >= 240 && w <= 500)
+        {
+            CMS.App.Services.AppSettingsService.Instance.Update(s => s.EMapSidebarWidth = Math.Round(w));
+        }
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -43,6 +71,7 @@ public partial class EMapView : UserControl
         {
             _currentVm.PlacedNodes.CollectionChanged -= OnPlacedNodesCollectionChanged;
             _currentVm.NodesChanged -= OnVmNodesChanged;
+            _currentVm.BackgroundImageLoaded -= OnBackgroundImageLoaded;
         }
 
         _currentVm = DataContext as EMapViewModel;
@@ -51,7 +80,43 @@ public partial class EMapView : UserControl
         {
             _currentVm.PlacedNodes.CollectionChanged += OnPlacedNodesCollectionChanged;
             _currentVm.NodesChanged += OnVmNodesChanged;
+            _currentVm.BackgroundImageLoaded += OnBackgroundImageLoaded;
+
+            if (!string.IsNullOrEmpty(_currentVm.MapImagePath))
+            {
+                LoadBackgroundImage(_currentVm.MapImagePath);
+            }
+
             RedrawNodes();
+        }
+    }
+
+    private void OnBackgroundImageLoaded(string imagePath)
+    {
+        LoadBackgroundImage(imagePath);
+    }
+
+    private void LoadBackgroundImage(string? path)
+    {
+        if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path)) return;
+
+        try
+        {
+            CustomMapImage.Source = new Bitmap(path);
+            CustomMapImage.IsVisible = true;
+            MapCanvas.Background = Brushes.Transparent;
+
+            foreach (var child in MapCanvas.Children)
+            {
+                if (child.Tag as string != MapNodeTag)
+                {
+                    child.IsVisible = false;
+                }
+            }
+        }
+        catch
+        {
+            // Fallback nếu ảnh bị lỗi đường dẫn
         }
     }
 
@@ -338,6 +403,7 @@ public partial class EMapView : UserControl
         {
             try
             {
+                var localPath = files[0].TryGetLocalPath() ?? files[0].Path.LocalPath;
                 await using var stream = await files[0].OpenReadAsync();
                 CustomMapImage.Source = new Bitmap(stream);
                 CustomMapImage.IsVisible = true;
@@ -353,8 +419,9 @@ public partial class EMapView : UserControl
 
                 if (DataContext is EMapViewModel vm)
                 {
+                    vm.MapImagePath = localPath;
                     vm.MapTitle = $"Sơ đồ mặt bằng: {files[0].Name}";
-                    vm.StatusMessage = $"Đã tải sơ đồ mặt bằng \"{files[0].Name}\".";
+                    vm.StatusMessage = $"Đã tải sơ đồ mặt bằng \"{files[0].Name}\". Nhấn [Lưu cấu hình] để lưu lại vào hệ thống.";
                 }
             }
             catch (Exception ex)

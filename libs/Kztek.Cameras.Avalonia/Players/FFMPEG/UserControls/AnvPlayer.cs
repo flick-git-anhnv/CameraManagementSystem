@@ -371,7 +371,7 @@ namespace Kztek.Cameras
         }
         public double CurrentPositionSeconds => _service.Decoder?.CurrentPositionSeconds ?? 0;
         public double DurationSeconds => _service.Decoder?.DurationSeconds ?? 0;
-        public void SeekSeconds(double seconds) => _service.Decoder?.RequestSeekSeconds(seconds);
+        public void SeekSeconds(double seconds) => _service.RequestSeekSeconds(seconds);
         public EmVirtualLoopType VirtualLoopType
         {
             get => _service.VirtualLoopType;

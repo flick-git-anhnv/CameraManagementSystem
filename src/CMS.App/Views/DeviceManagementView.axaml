@@ -17,13 +17,13 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid Margin="14" RowDefinitions="Auto, Auto, *">
+    <Grid Margin="14" RowDefinitions="Auto, *">
         <!-- ── 1. Top Header ─────────────────────────────────────────────── -->
         <Border Grid.Row="0"
                 Background="{DynamicResource ThemeCardBackgroundBrush}"
                 CornerRadius="8"
                 Padding="16,12"
-                Margin="0,0,0,8"
+                Margin="0,0,0,10"
                 BorderBrush="{DynamicResource ThemeCardBorderBrush}"
                 BorderThickness="1">
             <Grid ColumnDefinitions="*, Auto">
@@ -38,10 +38,15 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <kz:KzButton Content="⚡ Thêm nhanh"
+                                 Command="{Binding OpenQuickAddDialogCommand}"
+                                 Variant="Primary"
+                                 KzSize="Md"
+                                 ToolTip.Tip="Mở hộp thoại thêm nhanh hàng loạt theo dải IP hoặc các camera ONVIF đã chọn"/>
                     <kz:KzButton Content="🔍 Quét ONVIF (LAN)"
                                  Command="{Binding ScanOnvifDevicesCommand}"
                                  IsEnabled="{Binding !IsScanning}"
-                                 Variant="Primary"
+                                 Variant="Secondary"
                                  KzSize="Md"/>
                     <kz:KzButton Content="🔌 Kiểm tra kết nối tất cả"
                                  Command="{Binding CheckAllConnectionsCommand}"
@@ -57,142 +62,23 @@
             </Grid>
         </Border>
 
-        <!-- ── 2. Batch Quick-Add Panel (Thêm Nhanh Hàng Loạt) ────────────── -->
-        <Border Grid.Row="1"
-                Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}"
-                CornerRadius="8"
-                Padding="16,12"
-                Margin="0,0,0,10"
-                BorderBrush="{DynamicResource ThemeCardBorderBrush}"
-                BorderThickness="1">
-            <StackPanel Spacing="8">
-                <!-- Batch Add Header Row -->
-                <Grid ColumnDefinitions="Auto, *, Auto">
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <Border Background="#F05922" CornerRadius="4" Padding="8,4" VerticalAlignment="Center">
-                            <TextBlock Text="⚡ THÊM NHANH HÀNG LOẠT (BATCH ADD)" FontSize="12" FontWeight="Bold" Foreground="White"/>
-                        </Border>
-                        <TextBlock Text="Cấu hình thông số chung để thêm đồng loạt theo dải địa chỉ IP hoặc thêm hàng loạt thiết bị ONVIF đã tích chọn"
-                                   FontSize="13"
-                                   Foreground="{DynamicResource ThemeTextSecondaryBrush}"
-                                   VerticalAlignment="Center"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <CheckBox Content="Hỗ trợ PTZ"
-                                  IsChecked="{Binding BatchHasPtz, Mode=TwoWay}"
-                                  FontSize="13"
-                                  Foreground="{DynamicResource ThemeTextPrimaryBrush}"
-                                  VerticalAlignment="Center"
-                                  Margin="0,0,6,0"/>
-                        <kz:KzButton Content="⚡ Thêm hàng loạt theo dải IP"
-                                     Command="{Binding BatchAddByIpRangeCommand}"
-                                     Variant="Primary"
-                                     KzSize="Md"
-                                     ToolTip.Tip="Tự động tạo và thêm toàn bộ camera trong dải IP từ IP bắt đầu đến IP kết thúc"/>
-                        <kz:KzButton Content="{Binding BatchAddDiscoveredButtonText}"
-                                     Command="{Binding BatchAddSelectedDiscoveredCommand}"
-                                     IsVisible="{Binding HasDiscoveredDevices}"
-                                     Variant="Secondary"
-                                     KzSize="Md"
-                                     ToolTip.Tip="Thêm đồng loạt các thiết bị ONVIF đang tích chọn bên dưới với tài khoản/mật khẩu chung này"/>
-                    </StackPanel>
-                </Grid>
-
-                <!-- Batch Add Inputs Row (Full Camera Parameters for Bulk Creation) -->
-                <Grid ColumnDefinitions="1.15*, 1.15*, 1.1*, 1.1*, 85, 85, 1*, 1*">
-                    <!-- Từ IP -->
-                    <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,8,0">
-                        <TextBlock Text="Từ địa chỉ IP (hoặc DS IP):" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
-                        <kz:KzTextBox Text="{Binding BatchStartIp, Mode=TwoWay}"
-                                      PlaceholderText="VD: 192.168.21.10"
-                                      KzSize="Md"
-                                      FontSize="14"/>
-                    </StackPanel>
-
-                    <!-- Đến IP -->
-                    <StackPanel Grid.Column="1" Spacing="3" Margin="0,0,8,0">
-                        <TextBlock Text="Đến địa chỉ IP:" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
-                        <kz:KzTextBox Text="{Binding BatchEndIp, Mode=TwoWay}"
-                                      PlaceholderText="VD: 192.168.21.20"
-                                      KzSize="Md"
-                                      FontSize="14"/>
-                    </StackPanel>
-
-                    <!-- Tiền tố tên -->
-                    <StackPanel Grid.Column="2" Spacing="3" Margin="0,0,8,0">
-                        <TextBlock Text="Tiền tố tên camera:" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
-                        <kz:KzTextBox Text="{Binding BatchNamePrefix, Mode=TwoWay}"
-                                      PlaceholderText="VD: Camera Khu A"
-                                      KzSize="Md"
-                                      FontSize="14"/>
-                    </StackPanel>
-
-                    <!-- Hãng / Chuẩn -->
-                    <StackPanel Grid.Column="3" Spacing="3" Margin="0,0,8,0">
-                        <TextBlock Text="Hãng / Giao thức:" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
-                        <ComboBox ItemsSource="{Binding AvailableBrands}"
-                                  SelectedItem="{Binding QuickAddBrand, Mode=TwoWay}"
-                                  HorizontalAlignment="Stretch"
-                                  MinHeight="40"
-                                  FontSize="14"/>
-                    </StackPanel>
-
-                    <!-- Cổng RTSP -->
-                    <StackPanel Grid.Column="4" Spacing="3" Margin="0,0,8,0">
-                        <TextBlock Text="Cổng RTSP:" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
-                        <kz:KzTextBox Text="{Binding BatchRtspPort, Mode=TwoWay}"
-                                      KzSize="Md"
-                                      FontSize="14"/>
-                    </StackPanel>
-
-                    <!-- Cổng HTTP -->
-                    <StackPanel Grid.Column="5" Spacing="3" Margin="0,0,8,0">
-                        <TextBlock Text="Cổng HTTP:" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
-                        <kz:KzTextBox Text="{Binding BatchHttpPort, Mode=TwoWay}"
-                                      KzSize="Md"
-                                      FontSize="14"/>
-                    </StackPanel>
-
-                    <!-- Tài khoản chung -->
-                    <StackPanel Grid.Column="6" Spacing="3" Margin="0,0,8,0">
-                        <TextBlock Text="Tài khoản chung:" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
-                        <kz:KzTextBox Text="{Binding QuickAddUsername, Mode=TwoWay}"
-                                      PlaceholderText="admin"
-                                      KzSize="Md"
-                                      FontSize="14"/>
-                    </StackPanel>
-
-                    <!-- Mật khẩu chung -->
-                    <StackPanel Grid.Column="7" Spacing="3">
-                        <TextBlock Text="Mật khẩu chung:" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
-                        <kz:KzTextBox Text="{Binding QuickAddPassword, Mode=TwoWay}"
-                                      PasswordChar="●"
-                                      PlaceholderText="Mật khẩu loạt cam"
-                                      KzSize="Md"
-                                      FontSize="14"/>
-                    </StackPanel>
-                </Grid>
-            </StackPanel>
-        </Border>
-
-        <!-- ── 3. Main Body ───────────────────────────────────────────────── -->
-        <Grid Grid.Row="2">
+        <!-- ── 2. Main Body ───────────────────────────────────────────────── -->
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" MinWidth="420"/>
                 <ColumnDefinition Width="6"/>
-                <ColumnDefinition Width="370" MinWidth="310" MaxWidth="520"/>
+                <ColumnDefinition Width="380" MinWidth="320" MaxWidth="550"/>
             </Grid.ColumnDefinitions>
 
             <!-- Left: Configured Cameras Grid & Discovered ONVIF Grid -->
             <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="1.25*" MinHeight="180"/>
+                    <RowDefinition Height="*" MinHeight="180"/>
                     <RowDefinition Height="6"/>
-                    <RowDefinition Height="*" MinHeight="160"/>
+                    <RowDefinition Height="220" MinHeight="140" MaxHeight="500"/>
                 </Grid.RowDefinitions>
 
-                <!-- ── 3A. Configured Cameras Section ────────────────────── -->
+                <!-- ── 2A. Configured Cameras Section ────────────────────── -->
                 <Border Grid.Row="0"
                         Background="{DynamicResource ThemeCardBackgroundBrush}"
                         CornerRadius="8"
@@ -223,8 +109,8 @@
                             </StackPanel>
                         </Grid>
 
-                        <!-- Search & Filter Bar for Configured Cameras (Large Readable Font) -->
-                        <Grid Grid.Row="1" ColumnDefinitions="*, 220" Margin="0,0,0,10">
+                        <!-- Search & Filter Bar for Configured Cameras -->
+                        <Grid Grid.Row="1" ColumnDefinitions="*, 200, Auto" Margin="0,0,0,10">
                             <kz:KzTextBox Grid.Column="0"
                                           Text="{Binding CameraSearchText, Mode=TwoWay}"
                                           PlaceholderText="🔍 Tìm lọc camera theo tên, địa chỉ IP, hãng sản xuất..."
@@ -236,7 +122,14 @@
                                       SelectedItem="{Binding CameraStatusFilter, Mode=TwoWay}"
                                       HorizontalAlignment="Stretch"
                                       MinHeight="40"
-                                      FontSize="14"/>
+                                      FontSize="14"
+                                      Margin="0,0,8,0"/>
+                            <kz:KzButton Grid.Column="2"
+                                         Content="{Binding CameraSortButtonText}"
+                                         Command="{Binding ToggleCameraSortCommand}"
+                                         Variant="Secondary"
+                                         KzSize="Md"
+                                         ToolTip.Tip="Chuyển đổi sắp xếp theo thứ tự IP tăng dần / giảm dần"/>
                         </Grid>
 
                         <!-- Empty State when no cameras configured -->
@@ -254,7 +147,7 @@
                                            FontSize="13"
                                            Foreground="{DynamicResource ThemeTextPrimaryBrush}"
                                            HorizontalAlignment="Center"/>
-                                <TextBlock Text="Hãy sử dụng khung Thêm nhanh hàng loạt ở trên, quét ONVIF hoặc điền biểu mẫu bên phải."
+                                <TextBlock Text="Hãy nhấn nút '⚡ Thêm nhanh' ở góc trên, quét ONVIF hoặc điền biểu mẫu bên phải."
                                            FontSize="12"
                                            Foreground="{DynamicResource ThemeTextMutedBrush}"
                                            HorizontalAlignment="Center"/>
@@ -393,9 +286,9 @@
                 </Border>
 
                 <!-- Horizontal Splitter -->
-                <GridSplitter Grid.Row="1" Height="6" ResizeDirection="Rows" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0,2"/>
+                <GridSplitter x:Name="SplitterDiscoveredCameras" Grid.Row="1" Height="6" ResizeDirection="Rows" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0,2"/>
 
-                <!-- ── 3B. Discovered ONVIF Cameras Section ──────────────── -->
+                <!-- ── 2B. Discovered ONVIF Cameras Section ──────────────── -->
                 <Border Grid.Row="2"
                         Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}"
                         CornerRadius="8"
@@ -403,7 +296,7 @@
                         BorderThickness="1"
                         Padding="14,12">
                     <Grid RowDefinitions="Auto, *">
-                        <!-- Header with Filter & Multi-Select Batch Add actions -->
+                        <!-- Header with Filter, Sort & Selection actions -->
                         <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" Margin="0,0,0,8">
                             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="0,0,10,0">
                                 <TextBlock Text="CAMERA ONVIF TÌM THẤY TRÊN MẠNG"
@@ -426,6 +319,12 @@
                                           VerticalAlignment="Center"/>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <kz:KzButton Content="{Binding DiscoveredSortButtonText}"
+                                             Command="{Binding ToggleDiscoveredSortCommand}"
+                                             IsVisible="{Binding HasDiscoveredDevices}"
+                                             Variant="Secondary"
+                                             KzSize="Sm"
+                                             ToolTip.Tip="Chuyển đổi sắp xếp danh sách theo IP (Tăng dần / Giảm dần)"/>
                                 <kz:KzButton Content="☑️ Chọn hết"
                                              Command="{Binding SelectAllDiscoveredCommand}"
                                              IsVisible="{Binding HasDiscoveredDevices}"
@@ -544,9 +443,9 @@
             </Grid>
 
             <!-- Vertical Splitter -->
-            <GridSplitter Grid.Column="1" Width="6" ResizeDirection="Columns" HorizontalAlignment="Center" VerticalAlignment="Stretch" Margin="2,0"/>
+            <GridSplitter x:Name="SplitterConfigForm" Grid.Column="1" Width="6" ResizeDirection="Columns" HorizontalAlignment="Center" VerticalAlignment="Stretch" Margin="2,0"/>
 
-            <!-- ── 3C. Right: Add / Edit Camera Form ─────────────────────── -->
+            <!-- ── 2C. Right: Add / Edit Camera Form ─────────────────────── -->
             <Border Grid.Column="2"
                     Background="{DynamicResource ThemeCardBackgroundBrush}"
                     CornerRadius="8"
@@ -607,7 +506,7 @@
                         <kz:KzTextBox Text="{Binding Username, Mode=TwoWay}" PlaceholderText="admin" KzSize="Md" FontSize="14"/>
 
                         <TextBlock Text="Mật khẩu:" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
-                        <kz:KzTextBox Text="{Binding Password, Mode=TwoWay}" PasswordChar="●" PlaceholderText="Nhập mật khẩu camera" KzSize="Md" FontSize="14"/>
+                        <kz:KzPasswordTextBox Text="{Binding Password, Mode=TwoWay}" Watermark="Nhập mật khẩu camera" KzSize="Md"/>
 
                         <!-- PTZ Capability Toggle -->
                         <CheckBox Content="Hỗ trợ điều khiển quay quét (PTZ)"
@@ -655,5 +554,156 @@
                 </ScrollViewer>
             </Border>
         </Grid>
+
+        <!-- ── 3. Quick-Add Modal Dialog (Hộp Thoại Thêm Nhanh Hàng Loạt) ── -->
+        <Border Grid.Row="0" Grid.RowSpan="2"
+                IsVisible="{Binding IsQuickAddDialogOpen}"
+                Background="#990B0914"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                ZIndex="1000">
+            <Border Background="{DynamicResource ThemeCardBackgroundBrush}"
+                    BorderBrush="{DynamicResource ThemeCardBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Width="620"
+                    MaxWidth="660"
+                    Margin="20"
+                    Padding="22"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BoxShadow="0 12 40 #70000000">
+                <StackPanel Spacing="14">
+                    <!-- Dialog Header -->
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Grid.Column="0" Spacing="2">
+                            <TextBlock Text="⚡ THÊM NHANH HÀNG LOẠT CAMERA"
+                                       FontWeight="Bold"
+                                       FontSize="15"
+                                       Foreground="{DynamicResource ThemeBrandBrush}"/>
+                            <TextBlock Text="Thêm đồng loạt camera theo dải địa chỉ IP hoặc từ danh sách ONVIF tìm thấy."
+                                       FontSize="12"
+                                       Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="1"
+                                Content="✕"
+                                Command="{Binding CloseQuickAddDialogCommand}"
+                                Background="Transparent"
+                                Foreground="{DynamicResource ThemeTextSecondaryBrush}"
+                                FontSize="16"
+                                FontWeight="Bold"
+                                Padding="8,4"
+                                Cursor="Hand"
+                                ToolTip.Tip="Đóng hộp thoại"/>
+                    </Grid>
+
+                    <Separator Background="{DynamicResource ThemeCardBorderBrush}" Height="1"/>
+
+                    <!-- Dialog Form Fields -->
+                    <StackPanel Spacing="10">
+                        <!-- IP Range (Từ IP -> Đến IP) -->
+                        <Grid ColumnDefinitions="*, *">
+                            <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,8,0">
+                                <TextBlock Text="Từ địa chỉ IP (hoặc DS IP cách nhau dấu phẩy):" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                                <kz:KzTextBox Text="{Binding BatchStartIp, Mode=TwoWay}"
+                                              PlaceholderText="VD: 192.168.21.10"
+                                              KzSize="Md"
+                                              FontSize="14"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="3">
+                                <TextBlock Text="Đến địa chỉ IP (hoặc số cuối):" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                                <kz:KzTextBox Text="{Binding BatchEndIp, Mode=TwoWay}"
+                                              PlaceholderText="VD: 192.168.21.20 hoặc 20"
+                                              KzSize="Md"
+                                              FontSize="14"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Name Prefix & Brand -->
+                        <Grid ColumnDefinitions="*, *">
+                            <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,8,0">
+                                <TextBlock Text="Tiền tố tên camera:" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                                <kz:KzTextBox Text="{Binding BatchNamePrefix, Mode=TwoWay}"
+                                              PlaceholderText="VD: Camera Khu A"
+                                              KzSize="Md"
+                                              FontSize="14"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="3">
+                                <TextBlock Text="Hãng sản xuất / Giao thức:" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                                <ComboBox ItemsSource="{Binding AvailableBrands}"
+                                          SelectedItem="{Binding QuickAddBrand, Mode=TwoWay}"
+                                          HorizontalAlignment="Stretch"
+                                          MinHeight="40"
+                                          FontSize="14"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- RTSP Port, HTTP Port, Channel -->
+                        <Grid ColumnDefinitions="*, *, *">
+                            <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,8,0">
+                                <TextBlock Text="Cổng RTSP:" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                                <kz:KzTextBox Text="{Binding BatchRtspPort, Mode=TwoWay}" KzSize="Md" FontSize="14"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="3" Margin="0,0,8,0">
+                                <TextBlock Text="Cổng HTTP:" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                                <kz:KzTextBox Text="{Binding BatchHttpPort, Mode=TwoWay}" KzSize="Md" FontSize="14"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="3">
+                                <TextBlock Text="Kênh (Channel):" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                                <kz:KzTextBox Text="{Binding BatchChannel, Mode=TwoWay}" KzSize="Md" FontSize="14"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Username & Password using KzPasswordTextBox -->
+                        <Grid ColumnDefinitions="*, *">
+                            <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,8,0">
+                                <TextBlock Text="Tài khoản đăng nhập chung:" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                                <kz:KzTextBox Text="{Binding QuickAddUsername, Mode=TwoWay}"
+                                              PlaceholderText="admin"
+                                              KzSize="Md"
+                                              FontSize="14"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="3">
+                                <TextBlock Text="Mật khẩu chung:" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}"/>
+                                <kz:KzPasswordTextBox Text="{Binding QuickAddPassword, Mode=TwoWay}"
+                                                      Watermark="Nhập mật khẩu loạt camera"
+                                                      KzSize="Md"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- PTZ CheckBox -->
+                        <CheckBox Content="Hỗ trợ điều khiển quay quét (PTZ)"
+                                  IsChecked="{Binding BatchHasPtz, Mode=TwoWay}"
+                                  FontSize="13"
+                                  Foreground="{DynamicResource ThemeTextPrimaryBrush}"
+                                  Margin="0,4,0,0"/>
+                    </StackPanel>
+
+                    <!-- Dialog Action Buttons -->
+                    <Grid ColumnDefinitions="*, Auto" Margin="0,8,0,0">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                            <kz:KzButton Content="⚡ Thêm theo dải IP"
+                                         Command="{Binding BatchAddByIpRangeCommand}"
+                                         Variant="Primary"
+                                         KzSize="Md"
+                                         ToolTip.Tip="Thêm toàn bộ camera trong dải IP từ IP bắt đầu đến IP kết thúc"/>
+                            <kz:KzButton Content="{Binding BatchAddDiscoveredButtonText}"
+                                         Command="{Binding BatchAddSelectedDiscoveredCommand}"
+                                         IsVisible="{Binding HasDiscoveredDevices}"
+                                         Variant="Secondary"
+                                         KzSize="Md"
+                                         ToolTip.Tip="Thêm các camera ONVIF đang tích chọn với tài khoản/mật khẩu chung"/>
+                        </StackPanel>
+
+                        <kz:KzButton Grid.Column="1"
+                                     Content="Đóng"
+                                     Command="{Binding CloseQuickAddDialogCommand}"
+                                     Variant="Ghost"
+                                     KzSize="Md"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
     </Grid>
 </UserControl>

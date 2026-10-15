@@ -170,7 +170,7 @@
         </Border>
 
         <!-- Vertical Splitter -->
-        <GridSplitter Grid.Column="1" Width="6" ResizeDirection="Columns" HorizontalAlignment="Center" VerticalAlignment="Stretch" Margin="1,0"/>
+        <GridSplitter x:Name="SplitterPlayback" Grid.Column="1" Width="6" ResizeDirection="Columns" HorizontalAlignment="Center" VerticalAlignment="Stretch" Margin="1,0"/>
 
         <!-- ── 2. Right: Video Surface & Timeline ────────────────────────── -->
         <Grid Grid.Column="2" RowDefinitions="*, Auto, Auto">

@@ -21,7 +21,6 @@ public class ThemeService
     private static readonly Lazy<ThemeService> _instance = new(() => new ThemeService());
     public static ThemeService Instance => _instance.Value;
 
-    private readonly string _settingsFilePath;
     private AppTheme _currentTheme = AppTheme.Dark;
 
     public event EventHandler<AppTheme>? ThemeChanged;
@@ -31,28 +30,11 @@ public class ThemeService
 
     private ThemeService()
     {
-        _settingsFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app_settings.json");
     }
 
     public void Initialize()
     {
-        try
-        {
-            if (File.Exists(_settingsFilePath))
-            {
-                string json = File.ReadAllText(_settingsFilePath);
-                var settings = JsonSerializer.Deserialize<ThemeSettings>(json);
-                if (settings != null)
-                {
-                    _currentTheme = settings.Theme;
-                }
-            }
-        }
-        catch
-        {
-            _currentTheme = AppTheme.Dark;
-        }
-
+        _currentTheme = AppSettingsService.Instance.Current.Theme;
         ApplyTheme(_currentTheme);
     }
 
@@ -60,7 +42,7 @@ public class ThemeService
     {
         _currentTheme = theme;
         ApplyTheme(theme);
-        SaveSettings();
+        AppSettingsService.Instance.Update(s => s.Theme = theme);
         ThemeChanged?.Invoke(this, theme);
     }
 
@@ -76,20 +58,6 @@ public class ThemeService
             Application.Current.RequestedThemeVariant = theme == AppTheme.Dark
                 ? ThemeVariant.Dark
                 : ThemeVariant.Light;
-        }
-    }
-
-    private void SaveSettings()
-    {
-        try
-        {
-            var settings = new ThemeSettings { Theme = _currentTheme };
-            string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(_settingsFilePath, json);
-        }
-        catch
-        {
-            // Ignore settings save errors on write-protected environments
         }
     }
 }

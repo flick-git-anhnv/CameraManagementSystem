@@ -16,6 +16,17 @@ public partial class PlaybackView : UserControl
     {
         InitializeComponent();
 
+        // ── Khôi phục độ rộng Splitter cho Playback ─────────────────────────
+        var mainGrid = SplitterPlayback.Parent as Grid;
+        var savedWidth = CMS.App.Services.AppSettingsService.Instance.Current.PlaybackSidebarWidth;
+        if (mainGrid != null && mainGrid.ColumnDefinitions.Count > 0 && savedWidth >= 260 && savedWidth <= 460)
+        {
+            mainGrid.ColumnDefinitions[0].Width = new GridLength(savedWidth, GridUnitType.Pixel);
+        }
+
+        // Lắng nghe khi kéo thả Splitter Playback xong -> tự động lưu cấu hình
+        SplitterPlayback.DragCompleted += (_, _) => SavePlaybackSplitterWidth();
+
         Timeline.TimeSelected += OnTimelineTimeSelected;
         this.DataContextChanged += OnDataContextChanged;
         this.Unloaded += OnViewUnloaded;
@@ -25,6 +36,22 @@ public partial class PlaybackView : UserControl
             Interval = TimeSpan.FromMilliseconds(250)
         };
         _playbackTimer.Tick += OnPlaybackTimerTick;
+    }
+
+    private void SavePlaybackSplitterWidth()
+    {
+        var mainGrid = SplitterPlayback.Parent as Grid;
+        if (mainGrid == null || mainGrid.ColumnDefinitions.Count == 0) return;
+        var col = mainGrid.ColumnDefinitions[0];
+
+        double w = col.ActualWidth > 0
+            ? col.ActualWidth
+            : (col.Width.IsAbsolute ? col.Width.Value : 0);
+
+        if (w >= 260 && w <= 460)
+        {
+            CMS.App.Services.AppSettingsService.Instance.Update(s => s.PlaybackSidebarWidth = Math.Round(w));
+        }
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -77,17 +104,22 @@ public partial class PlaybackView : UserControl
 
         try
         {
-            PlaybackPlayer.Stop();
-            PlaybackPlayer.PlaybackSpeed = _boundVm.PlaybackSpeed;
-            PlaybackPlayer.IsPaused = false;
-            PlaybackPlayer.VideoSource = new CameraStreamInfo
+            if (PlaybackPlayer.VideoSource?.Source == seg.FilePath && PlaybackPlayer.IsRunning)
             {
-                Source = seg.FilePath
-            };
-            PlaybackPlayer.Start();
-
-            if (args.OffsetSeconds > 0.5)
+                PlaybackPlayer.PlaybackSpeed = _boundVm.PlaybackSpeed;
+                PlaybackPlayer.IsPaused = false;
+                PlaybackPlayer.SeekSeconds(args.OffsetSeconds);
+            }
+            else
             {
+                PlaybackPlayer.Stop();
+                PlaybackPlayer.PlaybackSpeed = _boundVm.PlaybackSpeed;
+                PlaybackPlayer.IsPaused = false;
+                PlaybackPlayer.VideoSource = new CameraStreamInfo
+                {
+                    Source = seg.FilePath
+                };
+                PlaybackPlayer.Start();
                 PlaybackPlayer.SeekSeconds(args.OffsetSeconds);
             }
 
@@ -174,7 +206,7 @@ public partial class PlaybackView : UserControl
 
     private void OnPlaybackTimerTick(object? sender, EventArgs e)
     {
-        if (_boundVm?.CurrentPlayingSegment == null || !_boundVm.IsPlaying)
+        if (_boundVm?.CurrentPlayingSegment == null || !_boundVm.IsPlaying || Timeline.IsDragging)
             return;
 
         var seg = _boundVm.CurrentPlayingSegment;
@@ -193,37 +225,71 @@ public partial class PlaybackView : UserControl
     {
         if (_boundVm == null) return;
 
+        // 1. Kiểm tra xem mốc thời gian click có nằm trong phân đoạn nào không
         var match = _boundVm.FindSegmentAtTime(selectedTime);
 
-        // Nếu người dùng click gần vạch video ngắn trên thanh 24h (±5 phút), tự động bắt vào đoạn gần nhất
+        // 2. Nếu click vào khoảng trống giữa các đoạn video:
+        // Tự động tìm đoạn video gần nhất trong ngày (chuẩn NVR)
         if (match == null && _boundVm.AvailableSegments.Count > 0)
         {
-            match = _boundVm.AvailableSegments
-                .Select(s => new
+            // Ưu tiên đoạn tiếp theo sau mốc click
+            var upcoming = _boundVm.AvailableSegments
+                .Where(s => s.StartTime >= selectedTime)
+                .OrderBy(s => s.StartTime)
+                .FirstOrDefault();
+
+            if (upcoming != null)
+            {
+                match = upcoming;
+                selectedTime = upcoming.StartTime;
+            }
+            else
+            {
+                // Nếu click sau tất cả các đoạn, chọn đoạn gần nhất trước đó
+                var previous = _boundVm.AvailableSegments
+                    .Where(s => s.EndTime <= selectedTime)
+                    .OrderByDescending(s => s.EndTime)
+                    .FirstOrDefault();
+
+                if (previous != null)
                 {
-                    Segment = s,
-                    Distance = Math.Min(
-                        Math.Abs((selectedTime - s.StartTime).TotalSeconds),
-                        Math.Abs((selectedTime - s.EndTime).TotalSeconds))
-                })
-                .Where(x => x.Distance <= 300)
-                .OrderBy(x => x.Distance)
-                .FirstOrDefault()?.Segment;
+                    match = previous;
+                    selectedTime = previous.EndTime.AddSeconds(-1);
+                }
+                else
+                {
+                    match = _boundVm.AvailableSegments[0];
+                    selectedTime = match.StartTime;
+                }
+            }
         }
 
         if (match != null)
         {
             double offsetSeconds = Math.Clamp((selectedTime - match.StartTime).TotalSeconds, 0, Math.Max(0, match.DurationSeconds - 0.5));
-            _boundVm.PlaySegmentAtOffset(match, offsetSeconds);
+
+            // Nếu đúng phân đoạn đang phát: tua trực tiếp bằng SeekSeconds, không cần khởi động lại toàn bộ đầu phát
+            if (_boundVm.CurrentPlayingSegment?.Id == match.Id && PlaybackPlayer.IsRunning)
+            {
+                PlaybackPlayer.SeekSeconds(offsetSeconds);
+                Timeline.CurrentTime = selectedTime.TimeOfDay;
+                _boundVm.CurrentTimeDisplay = selectedTime.ToString("HH:mm:ss");
+                _boundVm.PlaybackStatus = $"⏩ Đã tua đến {selectedTime:HH:mm:ss}";
+            }
+            else
+            {
+                _boundVm.PlaySegmentAtOffset(match, offsetSeconds);
+            }
         }
         else
         {
-            _boundVm.PlaybackStatus = $"ℹ️ Không có bản ghi tại thời điểm {selectedTime:HH:mm:ss}.";
+            _boundVm.PlaybackStatus = $"ℹ️ Không có bản ghi nào trong ngày {_boundVm.SelectedDate:dd/MM/yyyy}.";
         }
     }
 
     private void OnViewUnloaded(object? sender, RoutedEventArgs e)
     {
+        SavePlaybackSplitterWidth();
         _playbackTimer?.Stop();
         try
         {

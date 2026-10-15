@@ -153,6 +153,20 @@ namespace Kztek.Cameras
             }
         }
 
+        private double _pendingSeekSeconds = double.NaN;
+        internal void RequestSeekSeconds(double seconds)
+        {
+            var dec = _decoder;
+            if (dec != null)
+            {
+                dec.RequestSeekSeconds(seconds);
+            }
+            else
+            {
+                _pendingSeekSeconds = seconds;
+            }
+        }
+
         internal string RtspURL { get; set; }
         internal CameraStreamInfo VideoSource { get; set; }
 
@@ -386,6 +400,7 @@ namespace Kztek.Cameras
 
             _decoder = null;
             _pollingTask = null;
+            _pendingSeekSeconds = double.NaN;
 
             _plateDuplicateFilter.Clear();
 
@@ -430,6 +445,13 @@ namespace Kztek.Cameras
                         await Task.Delay(1000, token);
                         continue;
                     }
+
+                    if (!double.IsNaN(_pendingSeekSeconds))
+                    {
+                        _decoder.RequestSeekSeconds(_pendingSeekSeconds);
+                        _pendingSeekSeconds = double.NaN;
+                    }
+
                     DateTime lastFrameTime = DateTime.Now;
 
                     while (!token.IsCancellationRequested)

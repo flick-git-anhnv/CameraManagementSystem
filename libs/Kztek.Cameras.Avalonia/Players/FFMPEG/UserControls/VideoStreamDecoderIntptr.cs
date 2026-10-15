@@ -205,6 +205,12 @@ namespace Kztek.Cameras
                 IntPtr streamPtr = Marshal.ReadIntPtr(formatContext.streams, _streamIndex * IntPtr.Size);
                 AVStream videoStream = Marshal.PtrToStructure<AVStream>(streamPtr);
                 _timeBase = videoStream.time_base;
+                if (_isLocalFile)
+                {
+                    _initialPts = videoStream.start_time != FFMPEG.AV_NOPTS_VALUE && videoStream.start_time >= 0
+                        ? videoStream.start_time
+                        : 0;
+                }
 
                 AVCodecContext codecContext = Marshal.PtrToStructure<AVCodecContext>(codecCtx);
                 width = codecContext.width;

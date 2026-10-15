@@ -38,13 +38,12 @@ public partial class TimelineControl : UserControl
         }
     }
 
+    public bool IsDragging => _isDragging;
+
     public TimelineControl()
     {
         InitializeComponent();
 
-        TimelineCanvas.PointerPressed += OnCanvasPointerPressed;
-        TimelineCanvas.PointerMoved += OnCanvasPointerMoved;
-        TimelineCanvas.PointerReleased += OnCanvasPointerReleased;
         this.SizeChanged += (_, _) => RedrawTimeline();
         this.ActualThemeVariantChanged += (_, _) => RedrawTimeline();
         CMS.App.Services.ThemeService.Instance.ThemeChanged += (_, _) => RedrawTimeline();
@@ -163,26 +162,49 @@ public partial class TimelineControl : UserControl
         Canvas.SetTop(PlayheadHead, 0);
     }
 
-    private void OnCanvasPointerPressed(object? sender, PointerPressedEventArgs e)
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
+        base.OnPointerPressed(e);
         _isDragging = true;
-        SeekToPosition(e.GetPosition(TimelineCanvas).X);
+        e.Pointer.Capture(this);
+        UpdatePositionFromX(e.GetPosition(this).X);
+        e.Handled = true;
     }
 
-    private void OnCanvasPointerMoved(object? sender, PointerEventArgs e)
+    protected override void OnPointerMoved(PointerEventArgs e)
     {
+        base.OnPointerMoved(e);
         if (_isDragging)
         {
-            SeekToPosition(e.GetPosition(TimelineCanvas).X);
+            UpdatePositionFromX(e.GetPosition(this).X);
+            e.Handled = true;
         }
     }
 
-    private void OnCanvasPointerReleased(object? sender, PointerReleasedEventArgs e)
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
-        _isDragging = false;
+        base.OnPointerReleased(e);
+        if (_isDragging)
+        {
+            _isDragging = false;
+            e.Pointer.Capture(null);
+            UpdatePositionFromX(e.GetPosition(this).X);
+            CommitSelectedTime();
+            e.Handled = true;
+        }
     }
 
-    private void SeekToPosition(double x)
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+        if (_isDragging)
+        {
+            _isDragging = false;
+            CommitSelectedTime();
+        }
+    }
+
+    private void UpdatePositionFromX(double x)
     {
         double width = this.Bounds.Width;
         if (width <= 2 * HorizontalPadding) return;
@@ -190,10 +212,16 @@ public partial class TimelineControl : UserControl
         double usableWidth = width - (2 * HorizontalPadding);
         double clampedX = Math.Clamp(x - HorizontalPadding, 0, usableWidth);
         double ratio = clampedX / usableWidth;
-        double targetSeconds = ratio * 86400.0;
+        double targetSeconds = Math.Clamp(ratio * 86400.0, 0, 86399);
 
-        CurrentTime = TimeSpan.FromSeconds(targetSeconds);
-        DateTime selectedExactTime = _currentDay.Date.AddSeconds(targetSeconds);
+        _currentTime = TimeSpan.FromSeconds(targetSeconds);
+        TxtCurrentTime.Text = _currentTime.ToString(@"hh\:mm\:ss");
+        UpdatePlayheadPosition();
+    }
+
+    private void CommitSelectedTime()
+    {
+        DateTime selectedExactTime = _currentDay.Date.Add(_currentTime);
         TimeSelected?.Invoke(this, selectedExactTime);
     }
 }

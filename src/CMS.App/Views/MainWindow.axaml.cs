@@ -16,6 +16,17 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        // ── Khôi phục độ rộng Splitter cho Live View ────────────────────────
+        var liveGrid = SplitterLiveView.Parent as Grid;
+        var savedWidth = CMS.App.Services.AppSettingsService.Instance.Current.LiveViewSidebarWidth;
+        if (liveGrid != null && liveGrid.ColumnDefinitions.Count > 0 && savedWidth >= 200 && savedWidth <= 450)
+        {
+            liveGrid.ColumnDefinitions[0].Width = new GridLength(savedWidth, GridUnitType.Pixel);
+        }
+
+        // Lắng nghe khi kéo thả Splitter Live View xong -> tự động lưu cấu hình
+        SplitterLiveView.DragCompleted += (_, _) => SaveLiveViewSplitterWidth();
+
         LivePtzControl.PtzSupportChanged += (_, hasPtz) =>
         {
             if (PtzSidebarBorder != null)
@@ -66,6 +77,7 @@ public partial class MainWindow : Window
             _statusSyncTimer?.Stop();
             try
             {
+                SaveLiveViewSplitterWidth();
                 LiveGrid.StopAll();
                 Controls.VideoCellView.GlobalStorageManager.Dispose();
             }
@@ -73,6 +85,22 @@ public partial class MainWindow : Window
             {
             }
         };
+    }
+
+    private void SaveLiveViewSplitterWidth()
+    {
+        var liveGrid = SplitterLiveView.Parent as Grid;
+        if (liveGrid == null || liveGrid.ColumnDefinitions.Count == 0) return;
+        var col = liveGrid.ColumnDefinitions[0];
+
+        double w = col.ActualWidth > 0
+            ? col.ActualWidth
+            : (col.Width.IsAbsolute ? col.Width.Value : 0);
+
+        if (w >= 200 && w <= 450)
+        {
+            CMS.App.Services.AppSettingsService.Instance.Update(s => s.LiveViewSidebarWidth = Math.Round(w));
+        }
     }
 
     public void SyncCameraStates()

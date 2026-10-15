@@ -10,9 +10,11 @@ namespace CMS.App.ViewModels;
 public partial class EMapViewModel : ObservableObject
 {
     private readonly ICameraRepository _cameraRepo;
+    private readonly IEmapConfigRepository _emapRepo;
     private bool _isSampleInitialized;
 
     public event Action? NodesChanged;
+    public event Action<string>? BackgroundImageLoaded;
 
     [ObservableProperty]
     private ObservableCollection<CameraDevice> _availableCameras = new();
@@ -27,11 +29,18 @@ public partial class EMapViewModel : ObservableObject
     private string _mapTitle = "Khu vực 1 - Mặt bằng Tầng 1 Tòa nhà Trụ sở";
 
     [ObservableProperty]
-    private string _statusMessage = "Chọn camera rồi nhấp vào bản đồ để đặt/đổi vị trí, kéo thả trực tiếp camera trên bản đồ, hoặc nhấn ✕ để xóa.";
+    private string _mapImagePath = string.Empty;
 
-    public EMapViewModel(ICameraRepository? cameraRepo = null)
+    [ObservableProperty]
+    private bool _isSaving;
+
+    [ObservableProperty]
+    private string _statusMessage = "Chọn camera rồi nhấp vào bản đồ để đặt/đổi vị trí, kéo thả trực tiếp camera trên bản đồ, hoặc nhấn ✕ để xóa. Nhấn [Lưu cấu hình] để lưu lại.";
+
+    public EMapViewModel(ICameraRepository? cameraRepo = null, IEmapConfigRepository? emapRepo = null)
     {
         _cameraRepo = cameraRepo ?? new SqliteCameraRepository();
+        _emapRepo = emapRepo ?? new SqliteEmapConfigRepository();
         _ = LoadCamerasAsync();
     }
 
@@ -44,15 +53,45 @@ public partial class EMapViewModel : ObservableObject
             AvailableCameras.Add(cam);
         }
 
-        // Đồng bộ tên hoặc xóa các node của camera không còn tồn tại
+        var validDict = AvailableCameras.ToDictionary(c => c.Id, c => c.Name);
+
+        // Nạp cấu hình E-Map đã lưu từ CSDL
+        var savedConfig = await _emapRepo.GetConfigAsync();
+        if (savedConfig != null && (!string.IsNullOrEmpty(savedConfig.ImagePath) || savedConfig.CameraNodes.Count > 0))
+        {
+            _isSampleInitialized = true;
+            if (!string.IsNullOrEmpty(savedConfig.Name))
+            {
+                MapTitle = savedConfig.Name;
+            }
+
+            if (!string.IsNullOrEmpty(savedConfig.ImagePath))
+            {
+                MapImagePath = savedConfig.ImagePath;
+                BackgroundImageLoaded?.Invoke(MapImagePath);
+            }
+
+            PlacedNodes.Clear();
+            foreach (var node in savedConfig.CameraNodes)
+            {
+                if (validDict.TryGetValue(node.CameraId, out var camName))
+                {
+                    node.CameraName = camName;
+                    PlacedNodes.Add(node);
+                }
+            }
+
+            NodesChanged?.Invoke();
+            return;
+        }
+
+        // Nếu chưa từng lưu cấu hình, đồng bộ node hiện có hoặc tạo mẫu lần đầu
         var validIds = AvailableCameras.Select(c => c.Id).ToHashSet();
-        var removedAny = false;
         for (int i = PlacedNodes.Count - 1; i >= 0; i--)
         {
             if (!validIds.Contains(PlacedNodes[i].CameraId))
             {
                 PlacedNodes.RemoveAt(i);
-                removedAny = true;
             }
             else
             {
@@ -61,15 +100,10 @@ public partial class EMapViewModel : ObservableObject
             }
         }
 
-        // Tạo sẵn một số điểm camera mẫu lần đầu tiên
         if (!_isSampleInitialized && PlacedNodes.Count == 0 && AvailableCameras.Count > 0)
         {
             _isSampleInitialized = true;
             InitDefaultNodes();
-        }
-        else if (removedAny)
-        {
-            NodesChanged?.Invoke();
         }
         else
         {
@@ -199,7 +233,41 @@ public partial class EMapViewModel : ObservableObject
         }
 
         PlacedNodes.Clear();
-        StatusMessage = "Đã xóa toàn bộ camera khỏi sơ đồ mặt bằng.";
+        StatusMessage = "Đã xóa toàn bộ camera khỏi sơ đồ mặt bằng. Nhấn [Lưu cấu hình] để xác nhận lưu.";
         NodesChanged?.Invoke();
+    }
+
+    [RelayCommand]
+    public async Task SaveConfigAsync()
+    {
+        IsSaving = true;
+        try
+        {
+            var config = new EmapConfig
+            {
+                Id = "default_emap",
+                Name = MapTitle,
+                ImagePath = MapImagePath,
+                CameraNodes = PlacedNodes.ToList()
+            };
+
+            bool success = await _emapRepo.SaveConfigAsync(config);
+            if (success)
+            {
+                StatusMessage = "✅ Đã lưu cấu hình sơ đồ mặt bằng và vị trí camera thành công.";
+            }
+            else
+            {
+                StatusMessage = "❌ Lưu cấu hình sơ đồ mặt bằng thất bại.";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"❌ Lỗi khi lưu cấu hình: {ex.Message}";
+        }
+        finally
+        {
+            IsSaving = false;
+        }
     }
 }

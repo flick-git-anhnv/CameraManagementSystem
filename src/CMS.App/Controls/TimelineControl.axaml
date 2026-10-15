@@ -1,12 +1,14 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="CMS.App.Controls.TimelineControl"
-             Height="72">
+             Height="72"
+             Background="Transparent"
+             Cursor="Hand">
 
     <Border Background="{DynamicResource ThemeTimelineBackgroundBrush}" BorderBrush="{DynamicResource ThemeTimelineBorderBrush}" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
         <Grid ClipToBounds="True">
             <!-- Canvas vẽ các dải màu video đã ghi và vạch giờ -->
-            <Canvas x:Name="TimelineCanvas" Background="{DynamicResource ThemeTimelineBackgroundBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Cursor="Hand"/>
+            <Canvas x:Name="TimelineCanvas" Background="{DynamicResource ThemeTimelineBackgroundBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsHitTestVisible="False"/>
 
             <!-- Con trỏ thời gian (Playhead Cursor) -->
             <Canvas x:Name="PlayheadCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsHitTestVisible="False">

@@ -33,10 +33,19 @@ public partial class DeviceManagementViewModel : ObservableObject
     [ObservableProperty]
     private DiscoveredDevice? _selectedDiscoveredDevice;
 
-    // Filter fields for Configured & Discovered lists
+    // Filter & Sort fields
     [ObservableProperty] private string _cameraSearchText = "";
     [ObservableProperty] private string _cameraStatusFilter = "Tất cả trạng thái";
     [ObservableProperty] private string _discoveredSearchText = "";
+    [ObservableProperty] private bool _isDiscoveredSortAscending = true;
+    [ObservableProperty] private bool _isCameraSortAscending = true;
+
+    // Quick-Add Dialog state
+    [ObservableProperty] private bool _isQuickAddDialogOpen = false;
+    [ObservableProperty] private int _quickAddDialogTab = 0; // 0: Dải IP, 1: ONVIF đã chọn
+
+    public string DiscoveredSortButtonText => IsDiscoveredSortAscending ? "📶 Tăng dần ↑" : "📶 Giảm dần ↓";
+    public string CameraSortButtonText => IsCameraSortAscending ? "📶 Tăng dần ↑" : "📶 Giảm dần ↓";
 
     public IReadOnlyList<string> StatusFilterOptions { get; } = new[]
     {
@@ -83,8 +92,8 @@ public partial class DeviceManagementViewModel : ObservableObject
     public int DiscoveredCount => DiscoveredDevices.Count;
     public int SelectedDiscoveredCount => DiscoveredDevices.Count(d => d.IsSelected && !d.IsAlreadyAdded);
     public string BatchAddDiscoveredButtonText => SelectedDiscoveredCount > 0
-        ? $"⚡ Thêm hàng loạt đã chọn ({SelectedDiscoveredCount})"
-        : "⚡ Thêm hàng loạt tất cả";
+        ? $"⚡ Thêm {SelectedDiscoveredCount} camera ONVIF đã chọn"
+        : "⚡ Thêm tất cả camera ONVIF";
     public bool HasDiscoveredDevices => DiscoveredDevices.Count > 0;
     public bool IsEditingExisting => SelectedCamera != null;
     public string FormModeTitle => SelectedCamera != null ? $"✏️ CHỈNH SỬA: {SelectedCamera.Name}" : "➕ THÊM MỚI / CẤU HÌNH CHI TIẾT";
@@ -109,6 +118,70 @@ public partial class DeviceManagementViewModel : ObservableObject
     partial void OnCameraStatusFilterChanged(string value) => ApplyCameraFilter();
     partial void OnDiscoveredSearchTextChanged(string value) => ApplyDiscoveredFilter();
 
+    [RelayCommand]
+    public void OpenQuickAddDialog(int? initialTab = null)
+    {
+        if (initialTab.HasValue)
+        {
+            QuickAddDialogTab = initialTab.Value;
+        }
+        IsQuickAddDialogOpen = true;
+    }
+
+    [RelayCommand]
+    public void CloseQuickAddDialog()
+    {
+        IsQuickAddDialogOpen = false;
+    }
+
+    [RelayCommand]
+    public void ToggleDiscoveredSort()
+    {
+        IsDiscoveredSortAscending = !IsDiscoveredSortAscending;
+        OnPropertyChanged(nameof(DiscoveredSortButtonText));
+        ApplyDiscoveredFilter();
+    }
+
+    [RelayCommand]
+    public void ToggleCameraSort()
+    {
+        IsCameraSortAscending = !IsCameraSortAscending;
+        OnPropertyChanged(nameof(CameraSortButtonText));
+        ApplyCameraFilter();
+    }
+
+    public static (uint ipNum, int port, string raw) GetIpSortKey(string? rawIp, int defaultPort = 0)
+    {
+        if (string.IsNullOrWhiteSpace(rawIp))
+            return (0, defaultPort, string.Empty);
+
+        string ip = rawIp.Trim();
+        int port = defaultPort;
+
+        if (ip.Contains(':'))
+        {
+            var parts = ip.Split(':', 2);
+            ip = parts[0].Trim();
+            if (int.TryParse(parts[1].Trim(), out int parsedPort) && parsedPort > 0)
+            {
+                port = parsedPort;
+            }
+        }
+
+        if (System.Net.IPAddress.TryParse(ip, out var parsed) &&
+            parsed.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+        {
+            var bytes = parsed.GetAddressBytes();
+            uint num = ((uint)bytes[0] << 24) |
+                       ((uint)bytes[1] << 16) |
+                       ((uint)bytes[2] << 8) |
+                       (uint)bytes[3];
+            return (num, port, ip);
+        }
+
+        return (uint.MaxValue, port, rawIp);
+    }
+
     public void ApplyCameraFilter()
     {
         var query = Cameras.AsEnumerable();
@@ -131,6 +204,10 @@ public partial class DeviceManagementViewModel : ObservableObject
             query = query.Where(c => c.IsOffline);
         }
 
+        query = IsCameraSortAscending
+            ? query.OrderBy(c => GetIpSortKey(c.IpAddress, c.RtspPort))
+            : query.OrderByDescending(c => GetIpSortKey(c.IpAddress, c.RtspPort));
+
         var result = query.ToList();
         FilteredCameras.Clear();
         foreach (var cam in result)
@@ -152,6 +229,10 @@ public partial class DeviceManagementViewModel : ObservableObject
                 d.DisplayManufacturer.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
                 d.DetectedBrand.ToString().Contains(keyword, StringComparison.OrdinalIgnoreCase));
         }
+
+        query = IsDiscoveredSortAscending
+            ? query.OrderBy(d => GetIpSortKey(d.IPAddress, d.Port))
+            : query.OrderByDescending(d => GetIpSortKey(d.IPAddress, d.Port));
 
         var result = query.ToList();
         FilteredDiscoveredDevices.Clear();
@@ -224,8 +305,9 @@ public partial class DeviceManagementViewModel : ObservableObject
     {
         string? editingId = SelectedCamera?.Id;
         var list = await _cameraRepo.GetAllAsync();
+        var sorted = list.OrderBy(c => GetIpSortKey(c.IpAddress, c.RtspPort)).ToList();
         Cameras.Clear();
-        foreach (var cam in list)
+        foreach (var cam in sorted)
         {
             cam.IsBeingEdited = editingId != null && cam.Id == editingId;
             Cameras.Add(cam);
@@ -319,8 +401,9 @@ public partial class DeviceManagementViewModel : ObservableObject
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
             var found = await _discoveryService.AutoDiscoverAllAsync(cts.Token);
+            var sortedFound = found.OrderBy(d => GetIpSortKey(d.IPAddress, d.Port)).ToList();
 
-            foreach (var dev in found)
+            foreach (var dev in sortedFound)
             {
                 DiscoveredDevices.Add(dev);
             }
@@ -329,8 +412,8 @@ public partial class DeviceManagementViewModel : ObservableObject
             NotifySummaryCounts();
 
             StatusMessage = found.Count > 0
-                ? $"✅ Tìm thấy {found.Count} thiết bị camera trên mạng LAN. Bạn có thể nhấn '⚡ Thêm nhanh' hoặc chọn để cấu hình chi tiết."
-                : "⚠️ Không tìm thấy thiết bị ONVIF tự động. Bạn có thể dùng thanh Thêm nhanh bằng IP hoặc nhập thủ công.";
+                ? $"✅ Tìm thấy {found.Count} thiết bị camera trên mạng LAN. Bạn có thể nhấn '⚡ Thêm nhanh' để mở hộp thoại thêm hàng loạt."
+                : "⚠️ Không tìm thấy thiết bị ONVIF tự động. Bạn có thể dùng nút Thêm nhanh ở trên để thêm theo dải IP hoặc nhập thủ công.";
         }
         catch (Exception ex)
         {

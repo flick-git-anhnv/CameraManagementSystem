@@ -7,9 +7,15 @@
              x:Class="CMS.App.Views.EMapView"
              x:DataType="vm:EMapViewModel">
 
-    <Grid ColumnDefinitions="300, *" Margin="12">
+    <Grid Margin="12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" MinWidth="240" MaxWidth="500"/>
+            <ColumnDefinition Width="6"/>
+            <ColumnDefinition Width="*" MinWidth="400"/>
+        </Grid.ColumnDefinitions>
+
         <!-- ── 1. Left Sidebar: Cameras list ──────────────────────────────── -->
-        <Border Grid.Column="0" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,10,0">
+        <Border Grid.Column="0" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
             <Grid RowDefinitions="Auto, Auto, *, Auto">
                 <TextBlock Grid.Row="0" Text="BỐ TRÍ CAMERA TRÊN BẢN ĐỒ" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource ThemeBrandBrush}" Margin="0,0,0,6"/>
                 <TextBlock Grid.Row="1" Text="Chọn camera rồi nhấp lên bản đồ để đặt/đổi vị trí, hoặc kéo thả trực tiếp biểu tượng camera trên bản đồ." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
@@ -42,8 +48,11 @@
             </Grid>
         </Border>
 
+        <!-- Vertical Splitter -->
+        <GridSplitter x:Name="SplitterEMap" Grid.Column="1" Width="6" ResizeDirection="Columns" HorizontalAlignment="Center" VerticalAlignment="Stretch" Margin="1,0"/>
+
         <!-- ── 2. Right: Interactive Floor Plan Canvas ───────────────────── -->
-        <Border Grid.Column="1" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+        <Border Grid.Column="2" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
             <Grid RowDefinitions="Auto, *">
                 <!-- Map Header -->
                 <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="4,0,4,10">
@@ -55,6 +64,7 @@
                         <kz:KzButton x:Name="BtnLoadMapImage" Content="📂 Tải sơ đồ mặt bằng" Variant="Secondary" KzSize="Sm" ToolTip.Tip="Tải ảnh mặt bằng từ máy tính"/>
                         <kz:KzButton Content="🔄 Đặt lại vị trí" Command="{Binding ResetDefaultPositionsCommand}" Variant="Secondary" KzSize="Sm" ToolTip.Tip="Khôi phục vị trí camera mẫu mặc định"/>
                         <kz:KzButton Content="🗑️ Xóa tất cả" Command="{Binding ClearAllNodesCommand}" Variant="Danger" KzSize="Sm" ToolTip.Tip="Xóa toàn bộ camera trên bản đồ"/>
+                        <kz:KzButton Content="💾 Lưu cấu hình" Command="{Binding SaveConfigCommand}" Variant="Primary" KzSize="Sm" ToolTip.Tip="Lưu lại cấu hình sơ đồ mặt bằng và vị trí camera vào cơ sở dữ liệu"/>
                     </StackPanel>
                 </Grid>
 

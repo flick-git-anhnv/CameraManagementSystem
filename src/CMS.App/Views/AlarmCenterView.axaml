@@ -66,9 +66,15 @@
         </Grid>
 
         <!-- ── 3. Alarms List & Detail Splitter ────────────────────────────── -->
-        <Grid Grid.Row="2" ColumnDefinitions="*, 340">
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="450"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="340" MinWidth="280" MaxWidth="550"/>
+            </Grid.ColumnDefinitions>
+
             <!-- Left: Alarms Table -->
-            <Border Grid.Column="0" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,10,0">
+            <Border Grid.Column="0" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
                 <Grid RowDefinitions="Auto, *">
                     <!-- Column Headers -->
                     <Border Grid.Row="0" Background="{DynamicResource ThemeCardSecondaryBackgroundBrush}" CornerRadius="6" Padding="12,10" Margin="0,0,0,6">
@@ -120,8 +126,11 @@
                 </Grid>
             </Border>
 
+            <!-- Vertical Splitter -->
+            <GridSplitter x:Name="SplitterAlarmCenter" Grid.Column="1" Width="6" ResizeDirection="Columns" HorizontalAlignment="Center" VerticalAlignment="Stretch" Margin="1,0"/>
+
             <!-- Right: Alarm Detail & Snapshot Inspector -->
-            <Border Grid.Column="1" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+            <Border Grid.Column="2" Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
                 <Grid RowDefinitions="Auto, *, Auto">
                     <TextBlock Grid.Row="0" Text="CHI TIẾT SỰ KIỆN CẢNH BÁO" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource ThemeBrandBrush}" Margin="0,0,0,12"/>
 
